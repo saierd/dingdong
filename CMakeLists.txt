@@ -11,6 +11,10 @@ include(cmake/clang_tidy.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
 
+add_subdirectory(3rdparty)
+
+find_package(Threads REQUIRED)
+
 set(HEADERS
     src/discovery.h
     src/instance.h
@@ -23,7 +27,8 @@ set(HEADERS
     src/stream/gstreamer_helpers.h
     src/stream/video.h
     src/system/machine_id.h
-    src/ui/main_window.h)
+    src/ui/main_window.h
+    src/util/logging.h)
 
 set(SOURCES
     src/discovery.cpp
@@ -36,11 +41,12 @@ set(SOURCES
     src/stream/gstreamer.cpp
     src/stream/video.cpp
     src/system/machine_id.cpp
-    src/ui/main_window.cpp)
+    src/ui/main_window.cpp
+    src/util/logging.cpp)
 
 set(CONFIG_FILES
     .clang-tidy)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${CONFIG_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm pthread)
+target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog Threads::Threads)

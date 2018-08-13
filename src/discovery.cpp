@@ -7,10 +7,13 @@
 
 #include "network/interface.h"
 #include "network/udp.h"
+#include "util/logging.h"
 
 int const discoveryPort = 40001;
 std::chrono::seconds const discoverySendInterval(1);
 int const discoveryNameSize = 50;
+
+std::string const discoveryLogCategory = "discovery";
 
 struct DiscoveryMessage {
     DiscoveryMessage(Instance const& instance, NetworkInterface const& interface) : id(instance.id()) {
@@ -33,6 +36,7 @@ struct DiscoveryMessage {
 
 // Periodically broadcasts discovery messages on all available interfaces.
 void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) {
+    auto logger = categoryLogger(discoveryLogCategory);
     auto interfaces = getNetworkInterfaces();
 
     std::vector<UdpSocket> sockets(interfaces.size());
@@ -46,6 +50,7 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
     auto nextInterval = std::chrono::steady_clock::now() + interval;
     while (true) {
         for (std::size_t i = 0; i < interfaces.size(); i++) {
+            logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(), interfaces[i].address().toString());
             sockets[i].sendStruct(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
         }
 
@@ -56,6 +61,8 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
 
 using DiscoveryCallback = std::function<void(Instance)>;
 void listenForDiscoveries(DiscoveryCallback const& callback) {
+    auto logger = categoryLogger(discoveryLogCategory);
+
     UdpSocket socket;
     socket.bind(discoveryPort);
 
@@ -63,7 +70,9 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
         auto data = socket.receive();
         if (data.size() == sizeof(DiscoveryMessage)) {
             auto discoveryMessage = reinterpret_cast<DiscoveryMessage const*>(data.data());
-            callback(discoveryMessage->toInstance());
+            auto instance = discoveryMessage->toInstance();
+            logger->debug("Received discovery message from {} (IP {})", instance.id().toString(), instance.ipAddress().toString());
+            callback(instance);
         }
     }
 }
@@ -86,7 +95,7 @@ public:
     void addInstance(Instance const& newInstance) {
         std::lock_guard<std::mutex> lock(mutex);
 
-        //if (newInstance.id() == self.id()) return;
+        if (newInstance.id() == self.id()) return;
 
         bool changed = false;
         bool found = false;

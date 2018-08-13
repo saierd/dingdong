@@ -2,7 +2,6 @@
 #include "stream/gstreamer.h"
 #include "stream/video.h"
 
-#include <iostream>
 #include "discovery.h"
 #include "settings.h"
 
@@ -10,11 +9,16 @@
 
 #include "ui/main_window.h"
 
+#include "util/logging.h"
+
 int main(int argc, char** argv) {
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
     initializeGStreamer(argc, argv);
 
     Settings self("Test Instance");
+    log()->info("Instance {}", self.name());
+    log()->info("Machine ID {}", self.id().toString());
+
     InstanceDiscovery discovery(self);
 
     MainWindow mainWindow;
@@ -22,11 +26,6 @@ int main(int argc, char** argv) {
     Glib::Dispatcher instancesChangedSignal;
 
     instancesChangedSignal.connect([&discovery, &mainWindow]() {
-        for (auto const& instance : discovery.instances()) {
-            std::cout << "Instance " << instance.name() << std::endl;
-            std::cout << "\tID " << instance.id().toString() << std::endl;
-            std::cout << "\tIP " << instance.ipAddress().toString() << std::endl;
-        }
         mainWindow.updateInstances(discovery.instances());
     });
     discovery.onInstancesChanged([&instancesChangedSignal](std::vector<Instance> const&) {
@@ -34,7 +33,7 @@ int main(int argc, char** argv) {
     });
 
     mainWindow.onCall.connect([](Instance const& instance) {
-        std::cout << "Call " << instance.name() << std::endl;
+        log()->info("Call {}", instance.id().toString());
     });
 
     return app->run(mainWindow);
