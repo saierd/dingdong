@@ -3,13 +3,17 @@
 #include <memory>
 #include <string>
 
+#include "network/ip_address.h"
+
 class AudioSender {
 public:
-    AudioSender(std::string const& targetHost, int targetPort);
+    AudioSender(IpAddress const& targetHost, int targetPort);
     ~AudioSender();
 
     void start();
     void stop();
+
+    bool isRunning() const;
 
 private:
     class Impl;

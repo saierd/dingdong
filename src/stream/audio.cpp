@@ -11,9 +11,11 @@ public:
     GstElement* encode = nullptr;
     GstElement* rtpPayload = nullptr;
     GstElement* udpSink = nullptr;
+
+    bool isRunning = false;
 };
 
-AudioSender::AudioSender(std::string const& targetHost, int targetPort) {
+AudioSender::AudioSender(IpAddress const& targetHost, int targetPort) {
     impl = std::make_unique<Impl>();
 
     impl->pipeline = gst_pipeline_new("sender");
@@ -21,7 +23,7 @@ AudioSender::AudioSender(std::string const& targetHost, int targetPort) {
     impl->encode = gst_element_factory_make("mulawenc", nullptr);
     impl->rtpPayload = gst_element_factory_make("rtppcmupay", nullptr);
     impl->udpSink = gst_element_factory_make("udpsink", nullptr);
-    g_object_set(g_object_cast(impl->udpSink), "host", targetHost.c_str(), nullptr);
+    g_object_set(g_object_cast(impl->udpSink), "host", targetHost.toString().c_str(), nullptr);
     g_object_set(g_object_cast(impl->udpSink), "port", targetPort, nullptr);
 
     gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);
@@ -34,10 +36,16 @@ AudioSender::~AudioSender() {
 
 void AudioSender::start() {
     gst_element_set_state(impl->pipeline, GST_STATE_PLAYING);
+    impl->isRunning = true;
 }
 
 void AudioSender::stop() {
     gst_element_set_state(impl->pipeline, GST_STATE_PAUSED);
+    impl->isRunning = false;
+}
+
+bool AudioSender::isRunning() const {
+    return impl->isRunning;
 }
 
 // gst-launch-1.0 udpsrc port=5555 caps="application/x-rtp" ! queue ! rtppcmudepay ! mulawdec ! audioconvert ! alsasink

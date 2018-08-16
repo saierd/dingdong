@@ -15,7 +15,7 @@ public:
     GstElement* udpSink = nullptr;
 };
 
-VideoSender::VideoSender(std::string const& targetHost, int targetPort) {
+VideoSender::VideoSender(IpAddress const& targetHost, int targetPort) {
     impl = std::make_unique<Impl>();
 
     impl->pipeline = gst_pipeline_new("videosender");
@@ -28,7 +28,7 @@ VideoSender::VideoSender(std::string const& targetHost, int targetPort) {
     g_object_set(g_object_cast(impl->encode), "speed-preset", 2, nullptr); // superfast
     impl->rtpPayload = gst_element_factory_make("rtph264pay", nullptr);
     impl->udpSink = gst_element_factory_make("udpsink", nullptr);
-    g_object_set(g_object_cast(impl->udpSink), "host", targetHost.c_str(), nullptr);
+    g_object_set(g_object_cast(impl->udpSink), "host", targetHost.toString().c_str(), nullptr);
     g_object_set(g_object_cast(impl->udpSink), "port", targetPort, nullptr);
 
     gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->scale, impl->convert, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);

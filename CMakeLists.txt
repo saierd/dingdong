@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.10)
 
 project(dingdong CXX)
 
@@ -7,15 +7,24 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror -Wnon-virtual-dtor -Wold-style-cast")
 
+# Avoid a warning in the json library with GCC 6 on Raspberry.
+# See https://github.com/nlohmann/json/issues/658
+if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+endif()
+
 include(cmake/clang_tidy.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
-
-add_subdirectory(3rdparty)
+include(cmake/uuid.cmake)
 
 find_package(Threads REQUIRED)
 
+add_subdirectory(3rdparty)
+
 set(HEADERS
+    src/call.h
+    src/call_protocol.h
     src/discovery.h
     src/instance.h
     src/network/interface.h
@@ -27,10 +36,16 @@ set(HEADERS
     src/stream/gstreamer_helpers.h
     src/stream/video.h
     src/system/machine_id.h
+    src/system/uuid.h
+    src/ui/call_screen.h
+    src/ui/main_screen.h
     src/ui/main_window.h
+    src/ui/screen.h
     src/util/logging.h)
 
 set(SOURCES
+    src/call.cpp
+    src/call_protocol.cpp
     src/discovery.cpp
     src/main.cpp
     src/network/interface.cpp
@@ -41,7 +56,11 @@ set(SOURCES
     src/stream/gstreamer.cpp
     src/stream/video.cpp
     src/system/machine_id.cpp
+    src/system/uuid.cpp
+    src/ui/call_screen.cpp
+    src/ui/main_screen.cpp
     src/ui/main_window.cpp
+    src/ui/screen.cpp
     src/util/logging.cpp)
 
 set(CONFIG_FILES
@@ -49,4 +68,4 @@ set(CONFIG_FILES
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${CONFIG_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog libuuid cpp-httplib nlohmann_json Threads::Threads)

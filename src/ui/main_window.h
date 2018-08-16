@@ -1,21 +1,16 @@
 #pragma once
 
-#include <gtkmm/box.h>
-#include <gtkmm/button.h>
 #include <gtkmm/window.h>
 
-#include "instance.h"
+#include "screen.h"
 
 class MainWindow : public Gtk::Window {
 public:
     MainWindow();
 
-    void updateInstances(std::vector<Instance> instances);
-    sigc::signal<void, Instance const&> onCall;
+    void showScreen(Screen& screen);
+    bool isCurrentScreen(Screen const& screen) const;
 
 private:
-    std::vector<Instance> instances;
-
-    Gtk::Box buttonBox;
-    std::vector<Gtk::Button> buttons;
+    Screen* currentScreen = nullptr;
 };

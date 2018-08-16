@@ -10,7 +10,11 @@
 #include "util/logging.h"
 
 int const discoveryPort = 40001;
-std::chrono::seconds const discoverySendInterval(1);
+#ifdef NDEBUG
+std::chrono::seconds const discoverySendInterval(10);
+#else
+std::chrono::seconds const discoverySendInterval(2);
+#endif
 int const discoveryNameSize = 50;
 
 std::string const discoveryLogCategory = "discovery";

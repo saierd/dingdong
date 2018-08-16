@@ -12,7 +12,7 @@ public:
     }
 
 private:
-    std::shared_ptr<spdlog::logger> logger;
+    Logger logger;
 };
 
 static GlobalLogger globalLogger;

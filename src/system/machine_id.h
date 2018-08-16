@@ -3,11 +3,9 @@
 #include <array>
 
 class MachineId {
-private:
-    MachineId(std::string const& data);
-    friend MachineId getMachineId();
-
 public:
+    MachineId(std::string const& data);
+
     std::string toString() const {
         return std::string(id.data(), id.size());
     }

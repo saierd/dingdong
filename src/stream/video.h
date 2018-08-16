@@ -3,9 +3,11 @@
 #include <memory>
 #include <string>
 
+#include "network/ip_address.h"
+
 class VideoSender {
 public:
-    VideoSender(std::string const& targetHost, int targetPort);
+    VideoSender(IpAddress const& targetHost, int targetPort);
     ~VideoSender();
 
     void start();

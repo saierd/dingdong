@@ -1,19 +1,18 @@
-#include "stream/audio.h"
-#include "stream/gstreamer.h"
-#include "stream/video.h"
-
-#include "discovery.h"
-#include "settings.h"
-
 #include <glibmm/dispatcher.h>
 
-#include "ui/main_window.h"
-
+#include "call_protocol.h"
+#include "discovery.h"
+#include "settings.h"
+#include "stream/gstreamer.h"
 #include "util/logging.h"
 
+#include "ui/call_screen.h"
+#include "ui/main_window.h"
+#include "ui/main_screen.h"
+
 int main(int argc, char** argv) {
-    auto app = Gtk::Application::create(argc, argv, "org.dingdong");
     initializeGStreamer(argc, argv);
+    auto app = Gtk::Application::create(argc, argv, "org.dingdong");
 
     Settings self("Test Instance");
     log()->info("Instance {}", self.name());
@@ -22,41 +21,64 @@ int main(int argc, char** argv) {
     InstanceDiscovery discovery(self);
 
     MainWindow mainWindow;
+    MainScreen mainScreen;
+    CallScreen callScreen;
 
     Glib::Dispatcher instancesChangedSignal;
 
-    instancesChangedSignal.connect([&discovery, &mainWindow]() {
-        mainWindow.updateInstances(discovery.instances());
+    instancesChangedSignal.connect([&discovery, &mainScreen]() {
+        mainScreen.updateInstances(discovery.instances());
     });
     discovery.onInstancesChanged([&instancesChangedSignal](std::vector<Instance> const&) {
         instancesChangedSignal();
     });
 
-    mainWindow.onCall.connect([](Instance const& instance) {
-        log()->info("Call {}", instance.id().toString());
+    CallProtocol calls(self, discovery);
+    mainScreen.onCall.connect([&calls](Instance const& instance) {
+        log()->info("Call {} ({})", instance.id().toString(), instance.name());
+        calls.requestCall(instance);
     });
 
+    auto updateCallScreen = [&calls, &mainWindow, &mainScreen, &callScreen]() {
+        auto activeCalls = calls.currentActiveCalls();
+
+        if (activeCalls.empty()) {
+            if (mainWindow.isCurrentScreen(callScreen)) {
+                mainWindow.showScreen(mainScreen);
+            }
+            return;
+        }
+
+        callScreen.updateCalls(activeCalls);
+        mainWindow.showScreen(callScreen);
+
+        return;
+    };
+
+    auto updateCallScreenWhenIdle = [&]() {
+        Glib::signal_idle().connect([&]() {
+            updateCallScreen();
+            return false; // Disconnect the function.
+        });
+    };
+
+    calls.onNewCall.connect([&updateCallScreenWhenIdle](UUID const&) {
+        updateCallScreenWhenIdle();
+    });
+    calls.onCallAccepted.connect([&updateCallScreenWhenIdle](UUID const&) {
+        updateCallScreenWhenIdle();
+    });
+    calls.onCallCanceled.connect([&updateCallScreenWhenIdle](UUID const&) {
+        updateCallScreenWhenIdle();
+    });
+
+    callScreen.onAccept.connect([&calls](UUID const& id) {
+        calls.acceptCall(id);
+    });
+    callScreen.onCancel.connect([&calls](UUID const& id) {
+        calls.cancelCall(id);
+    });
+
+    mainWindow.showScreen(mainScreen);
     return app->run(mainWindow);
-
-
-
-//    std::string const targetHost = "localhost";
-    std::string const targetHost = "192.168.178.35";
-    int audioPort = 5555;
-    int videoPort = 5556;
-
-#if 1
-    AudioSender audioSender(targetHost, audioPort);
-    audioSender.start();
-    VideoSender videoSender(targetHost, videoPort);
-    videoSender.start();
-#else
-    AudioReceiver audioReceiver(audioPort);
-    audioReceiver.start();
-    VideoReceiver videoReceiver(videoPort);
-    videoReceiver.start();
-#endif
-
-    GStreamerMainLoop mainLoop;
-    mainLoop.run();
 }

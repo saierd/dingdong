@@ -2,21 +2,14 @@
 
 MainWindow::MainWindow() {
     set_border_width(10);
-
-    buttonBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    add(buttonBox);
 }
 
-void MainWindow::updateInstances(std::vector<Instance> _instances) {
-    instances = std::move(_instances);
+void MainWindow::showScreen(Screen& screen) {
+    remove();
+    add(screen.widget());
+    currentScreen = &screen;
+}
 
-    buttons.clear();
-    for (auto const& instance : instances) {
-        buttons.emplace_back(instance.name());
-        buttons.back().signal_clicked().connect([this, &instance]() {
-            onCall(instance);
-        });
-        buttonBox.pack_end(buttons.back());
-    }
-    show_all_children();
+bool MainWindow::isCurrentScreen(Screen const& screen) const {
+    return &screen == currentScreen;
 }
