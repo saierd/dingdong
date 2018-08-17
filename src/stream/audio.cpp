@@ -19,7 +19,12 @@ AudioSender::AudioSender(IpAddress const& targetHost, int targetPort) {
     impl = std::make_unique<Impl>();
 
     impl->pipeline = gst_pipeline_new("sender");
-    impl->source = gst_element_factory_make("autoaudiosrc", nullptr);
+    impl->source = gst_element_factory_make("alsasrc", nullptr);
+#ifdef RASPBERRY_PI
+    // On the Raspberry Pi we need to explicitly set the source device, even
+    // if it is the only available microphone. Otherwise opening it will fail.
+    g_object_set(g_object_cast(impl->source), "device", "plughw:1,0", nullptr);
+#endif
     impl->encode = gst_element_factory_make("mulawenc", nullptr);
     impl->rtpPayload = gst_element_factory_make("rtppcmupay", nullptr);
     impl->udpSink = gst_element_factory_make("udpsink", nullptr);
@@ -48,7 +53,7 @@ bool AudioSender::isRunning() const {
     return impl->isRunning;
 }
 
-// gst-launch-1.0 udpsrc port=5555 caps="application/x-rtp" ! queue ! rtppcmudepay ! mulawdec ! audioconvert ! alsasink
+// gst-launch-1.0 udpsrc port=5555 caps="application/x-rtp" ! rtppcmudepay ! mulawdec ! audioconvert ! alsasink
 
 class AudioReceiver::Impl {
 public:
@@ -73,8 +78,7 @@ AudioReceiver::AudioReceiver(int sourcePort) {
     impl->rtpDepay = gst_element_factory_make("rtppcmudepay", nullptr);
     impl->decode = gst_element_factory_make("mulawdec", nullptr);
     impl->convert = gst_element_factory_make("audioconvert", nullptr);
-    impl->sink = gst_element_factory_make("autoaudiosink", nullptr);
-    g_object_set(g_object_cast(impl->sink), "sync", false, nullptr);
+    impl->sink = gst_element_factory_make("alsasink", nullptr);
 
     gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);
     gst_element_link_many(impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);

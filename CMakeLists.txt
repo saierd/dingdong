@@ -2,14 +2,19 @@ cmake_minimum_required(VERSION 3.10)
 
 project(dingdong CXX)
 
+set(RASPBERRY_PI OFF)
+if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
+    set(RASPBERRY_PI ON)
+endif()
+
 # Note that we cannot use C++17, because Raspbian currently has GCC 6.3.
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror -Wnon-virtual-dtor -Wold-style-cast")
 
-# Avoid a warning in the json library with GCC 6 on Raspberry.
-# See https://github.com/nlohmann/json/issues/658
-if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
+if (RASPBERRY_PI)
+    # Avoid a warning in the json library with GCC 6 on Raspberry.
+    # See https://github.com/nlohmann/json/issues/658
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
 endif()
 
@@ -69,3 +74,7 @@ set(CONFIG_FILES
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${CONFIG_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog libuuid cpp-httplib nlohmann_json Threads::Threads)
+
+if (RASPBERRY_PI)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RASPBERRY_PI)
+endif()
