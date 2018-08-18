@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <map>
 #include <mutex>
 #include <thread>
 
@@ -16,6 +17,9 @@ std::chrono::seconds const discoverySendInterval(10);
 std::chrono::seconds const discoverySendInterval(2);
 #endif
 int const discoveryNameSize = 50;
+
+std::chrono::seconds const discoveryCleanupInterval(30);
+std::chrono::seconds const discoveryTimeout(30);
 
 std::string const discoveryLogCategory = "discovery";
 
@@ -89,17 +93,24 @@ public:
 
     std::mutex mutex;
     std::vector<Instance> instances;
+    std::map<std::string, std::chrono::steady_clock::time_point> instanceLastSeen;
 
     bool forceInstancesChangedSignal = false;
     std::vector<InstancesChangedCallback> callbacks;
 
     std::thread discoverySenderThread;
     std::thread discoveryReceiverThread;
+    std::thread cleanupThread;
 
     void addInstance(Instance const& newInstance) {
         std::lock_guard<std::mutex> lock(mutex);
 
+#ifdef NDEBUG
+        // In debug mode, we discover ourselves for debugging purposes.
         if (newInstance.id() == self.id()) return;
+#endif
+
+        instanceLastSeen[newInstance.id().toString()] = std::chrono::steady_clock::now();
 
         bool changed = false;
         bool found = false;
@@ -119,10 +130,50 @@ public:
         }
 
         if (changed || forceInstancesChangedSignal) {
-            for (auto const& callback : callbacks) {
-                callback(instances);
-            }
+            instancesChanged();
             forceInstancesChangedSignal = false;
+        }
+    }
+
+    // Remove timed out instances from the instance list.
+    void cleanup() {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        auto now = std::chrono::steady_clock::now();
+        size_t previousInstanceCount = instances.size();
+        instances.erase(std::remove_if(instances.begin(), instances.end(), [&now, this](Instance const& instance) {
+            if ((now - instanceLastSeen[instance.id().toString()]) > discoveryTimeout) {
+                auto logger = categoryLogger(discoveryLogCategory);
+                logger->debug("Instance {} ({}) timed out", instance.id().toString(), instance.name());
+                return true;
+            }
+            return false;
+        }), instances.end());
+
+        for (auto it = instanceLastSeen.begin(); it != instanceLastSeen.end();) {
+            bool instanceExists = false;
+            for (auto const& instance : instances) {
+                if (instance.id().toString() == it->first) {
+                    instanceExists = true;
+                    break;
+                }
+            }
+
+            if (!instanceExists) {
+                it = instanceLastSeen.erase(it);
+            } else {
+                it++;
+            }
+        }
+
+        if (instances.size() < previousInstanceCount) {
+            instancesChanged();
+        }
+    }
+
+    void instancesChanged() {
+        for (auto const& callback : callbacks) {
+            callback(instances);
         }
     }
 };
@@ -137,6 +188,14 @@ InstanceDiscovery::InstanceDiscovery(Instance const& self) {
         listenForDiscoveries([this](Instance const& instance) {
             impl->addInstance(instance);
         });
+    });
+    impl->cleanupThread = std::thread([this]() {
+        auto nextInterval = std::chrono::steady_clock::now() + discoveryCleanupInterval;
+        while (true) {
+            impl->cleanup();
+            std::this_thread::sleep_until(nextInterval);
+            nextInterval += discoveryCleanupInterval;
+        }
     });
 }
 
