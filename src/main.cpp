@@ -1,5 +1,3 @@
-#include <glibmm/dispatcher.h>
-
 #include "call_protocol.h"
 #include "discovery.h"
 #include "settings.h"
@@ -24,13 +22,12 @@ int main(int argc, char** argv) {
     MainScreen mainScreen;
     CallScreen callScreen;
 
-    Glib::Dispatcher instancesChangedSignal;
-
-    instancesChangedSignal.connect([&discovery, &mainScreen]() {
-        mainScreen.updateInstances(discovery.instances());
-    });
-    discovery.onInstancesChanged([&instancesChangedSignal](std::vector<Instance> const&) {
-        instancesChangedSignal();
+    discovery.onInstancesChanged([&mainScreen, &discovery](std::vector<Instance> const&) {
+        // Update the buttons on the main screen for the new instances.
+        Glib::signal_idle().connect([&]() {
+            mainScreen.updateInstances(discovery.instances());
+            return false; // Disconnect the function.
+        });
     });
 
     CallProtocol calls(self, discovery);
@@ -55,21 +52,11 @@ int main(int argc, char** argv) {
         return;
     };
 
-    auto updateCallScreenWhenIdle = [&]() {
+    calls.onCallsChanged.connect([&updateCallScreen]() {
         Glib::signal_idle().connect([&]() {
             updateCallScreen();
             return false; // Disconnect the function.
         });
-    };
-
-    calls.onNewCall.connect([&updateCallScreenWhenIdle](UUID const&) {
-        updateCallScreenWhenIdle();
-    });
-    calls.onCallAccepted.connect([&updateCallScreenWhenIdle](UUID const&) {
-        updateCallScreenWhenIdle();
-    });
-    calls.onCallCanceled.connect([&updateCallScreenWhenIdle](UUID const&) {
-        updateCallScreenWhenIdle();
     });
 
     callScreen.onAccept.connect([&calls](UUID const& id) {

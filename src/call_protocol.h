@@ -20,14 +20,13 @@ public:
 
     void requestCall(Instance const& target);
 
+    // Accept an incoming call.
     void acceptCall(UUID const& id);
+    // Reject an incoming call or stop any active call with the given id.
     void cancelCall(UUID const& id);
 
+    sigc::signal<void> onCallsChanged;
     std::vector<CallInfo> currentActiveCalls() const;
-
-    sigc::signal<void, UUID> onNewCall;
-    sigc::signal<void, UUID> onCallAccepted;
-    sigc::signal<void, UUID> onCallCanceled;
 
 private:
     class Impl;
