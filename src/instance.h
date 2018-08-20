@@ -30,7 +30,7 @@ public:
         return !(*this == other);
     }
 
-private:
+protected:
     MachineId _id;
     std::string _name;
     IpAddress _ipAddress;

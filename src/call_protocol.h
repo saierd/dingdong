@@ -4,6 +4,7 @@
 
 #include "discovery.h"
 #include "instance.h"
+#include "settings.h"
 #include "system/uuid.h"
 
 struct CallInfo {
@@ -15,7 +16,7 @@ struct CallInfo {
 
 class CallProtocol {
 public:
-    CallProtocol(Instance const& self, InstanceDiscovery const& instances);
+    CallProtocol(Settings const& self, InstanceDiscovery const& instances);
     ~CallProtocol();
 
     void requestCall(Instance const& target);

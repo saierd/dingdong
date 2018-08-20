@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
 
-    Settings self("Test Instance");
+    Settings self("settings.json");
     log()->info("Instance {}", self.name());
     log()->info("Machine ID {}", self.id().toString());
 
@@ -36,10 +36,10 @@ int main(int argc, char** argv) {
         calls.requestCall(instance);
     });
 
-    auto updateCallScreen = [&calls, &mainWindow, &mainScreen, &callScreen]() {
+    auto updateCallScreen = [&calls, &mainWindow, &mainScreen, &callScreen, &self]() {
         auto activeCalls = calls.currentActiveCalls();
 
-        if (activeCalls.empty()) {
+        if (activeCalls.empty() || !self.showCallScreen()) {
             if (mainWindow.isCurrentScreen(callScreen)) {
                 mainWindow.showScreen(mainScreen);
             }

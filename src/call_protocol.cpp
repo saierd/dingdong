@@ -31,7 +31,7 @@ httplib::Client clientForTarget(Instance const& target) {
 
 class CallProtocol::Impl {
 public:
-    Impl(CallProtocol* _protocol, Instance const& _self, InstanceDiscovery const& _instances) : protocol(_protocol), self(_self), instances(_instances) {
+    Impl(CallProtocol* _protocol, Settings const& _self, InstanceDiscovery const& _instances) : protocol(_protocol), self(_self), instances(_instances) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -64,6 +64,10 @@ public:
             } else {
                 logger->error("Could not find instance {}", machine.toString());
                 response.status = 500;
+            }
+
+            if (self.autoAccept()) {
+                protocol->acceptCall(id);
             }
         });
         httpServer.Post("/call/accept", [this](httplib::Request const& request, httplib::Response& response) {
@@ -312,7 +316,7 @@ public:
 
     CallProtocol* protocol;
 
-    Instance self;
+    Settings self;
     InstanceDiscovery const& instances;
 
     std::mutex mutex;
@@ -337,7 +341,7 @@ public:
     std::thread cleanupThread;
 };
 
-CallProtocol::CallProtocol(Instance const& self, InstanceDiscovery const& instances) {
+CallProtocol::CallProtocol(Settings const& self, InstanceDiscovery const& instances) {
     impl = std::make_unique<Impl>(this, self, instances);
 }
 
