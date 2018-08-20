@@ -2,6 +2,7 @@
 
 MainScreen::MainScreen() {
     buttonBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    buttonBox.set_spacing(10);
 }
 
 Gtk::Widget& MainScreen::widget() {
@@ -17,7 +18,7 @@ void MainScreen::updateInstances(std::vector<Instance> _instances) {
         buttons.back().signal_clicked().connect([this, &instance]() {
             onCall(instance);
         });
-        buttonBox.pack_end(buttons.back());
+        buttonBox.pack_start(buttons.back());
     }
     buttonBox.show_all();
 }

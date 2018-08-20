@@ -43,6 +43,7 @@ set(HEADERS
     src/system/machine_id.h
     src/system/uuid.h
     src/ui/call_screen.h
+    src/ui/gtk_helpers.h
     src/ui/main_screen.h
     src/ui/main_window.h
     src/ui/screen.h

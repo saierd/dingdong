@@ -1,7 +1,7 @@
 #include "main_window.h"
 
 MainWindow::MainWindow() {
-    set_border_width(10);
+    set_border_width(20);
 }
 
 void MainWindow::showScreen(Screen& screen) {

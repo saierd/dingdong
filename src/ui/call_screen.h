@@ -1,15 +1,14 @@
 #pragma once
 
+#include <memory>
+
 #include "screen.h"
 #include "call_protocol.h"
-
-#include <gtkmm/box.h>
-#include <gtkmm/button.h>
-#include <gtkmm/label.h>
 
 class CallScreen : public Screen {
 public:
     CallScreen();
+    ~CallScreen();
 
     Gtk::Widget& widget() override;
 
@@ -19,9 +18,6 @@ public:
     sigc::signal<void, UUID const&> onCancel;
 
 private:
-    Gtk::Box box;
-    Gtk::Button accept, cancel;
-    Gtk::Label label;
-
-    UUID currentCall;
+    class Impl;
+    std::unique_ptr<Impl> impl;
 };
