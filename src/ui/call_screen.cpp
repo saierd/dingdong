@@ -6,6 +6,10 @@
 
 #include "gtk_helpers.h"
 
+std::string const acceptButtonColor = "#3B3";
+std::string const cancelButtonColor = "#E20015"; // Same color as the logo.
+int const callButtonSpacing = 20;
+
 class CallWidget {
 public:
     CallWidget(CallInfo const& call) : callId(call.id) {
@@ -15,17 +19,18 @@ public:
 
         vbox.pack_start(label);
         vbox.pack_start(hbox);
+        hbox.set_spacing(callButtonSpacing);
         hbox.pack_start(accept);
         hbox.pack_start(cancel);
 
         accept.set_label("Accept");
-        applyCss(accept, "* { background: #3B3; }");
+        styleButton(accept, acceptButtonColor);
         accept.signal_clicked().connect([this]() {
             onAccept(callId);
         });
 
         cancel.set_label("Cancel");
-        applyCss(cancel, "* { background: #E22; }");
+        styleButton(cancel, cancelButtonColor);
         cancel.signal_clicked().connect([this]() {
             onCancel(callId);
         });

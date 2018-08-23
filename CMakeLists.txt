@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(dingdong CXX)
+project(dingdong C CXX)
 
 set(RASPBERRY_PI OFF)
 if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
@@ -19,6 +19,7 @@ if (RASPBERRY_PI)
 endif()
 
 include(cmake/clang_tidy.cmake)
+include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
 include(cmake/uuid.cmake)
@@ -72,7 +73,9 @@ set(SOURCES
 set(CONFIG_FILES
     .clang-tidy)
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${CONFIG_FILES})
+compile_gresource(resources/resources.xml RESOURCE_FILE)
+
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${RESOURCE_FILE} ${CONFIG_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog libuuid cpp-httplib nlohmann_json Threads::Threads)
 

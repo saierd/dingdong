@@ -1,5 +1,7 @@
 #pragma once
 
+#include <gtkmm/box.h>
+#include <gtkmm/image.h>
 #include <gtkmm/window.h>
 
 #include "screen.h"
@@ -13,4 +15,8 @@ public:
 
 private:
     Screen* currentScreen = nullptr;
+
+    Gtk::Box vbox;
+    Gtk::Box footerBox;
+    Gtk::Image logo;
 };
