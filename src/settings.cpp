@@ -21,5 +21,9 @@ Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown
         getValueFromJson(_name, data, "instanceName");
         getValueFromJson(_showCallScreen, data, "showCallScreen");
         getValueFromJson(_autoAccept, data, "autoAccept");
+        if (!_showCallScreen) {
+            _autoAccept = true; // Can't accept calls otherwise.
+        }
+        getValueFromJson(_ringtone, data, "ringtone");
     }
 }

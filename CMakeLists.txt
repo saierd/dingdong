@@ -29,17 +29,18 @@ find_package(Threads REQUIRED)
 add_subdirectory(3rdparty)
 
 set(HEADERS
+    src/audio_player.h
     src/call.h
     src/call_protocol.h
     src/discovery.h
+    src/gstreamer/gstreamer.h
+    src/gstreamer/gstreamer_helpers.h
     src/instance.h
     src/network/interface.h
     src/network/ip_address.h
     src/network/udp.h
     src/settings.h
     src/stream/audio.h
-    src/stream/gstreamer.h
-    src/stream/gstreamer_helpers.h
     src/stream/video.h
     src/system/machine_id.h
     src/system/uuid.h
@@ -51,16 +52,17 @@ set(HEADERS
     src/util/logging.h)
 
 set(SOURCES
+    src/audio_player.cpp
     src/call.cpp
     src/call_protocol.cpp
     src/discovery.cpp
+    src/gstreamer/gstreamer.cpp
     src/main.cpp
     src/network/interface.cpp
     src/network/ip_address.cpp
     src/network/udp.cpp
     src/settings.cpp
     src/stream/audio.cpp
-    src/stream/gstreamer.cpp
     src/stream/video.cpp
     src/system/machine_id.cpp
     src/system/uuid.cpp

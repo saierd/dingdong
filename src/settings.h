@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "instance.h"
 
 class Settings : public Instance {
@@ -14,7 +16,12 @@ public:
         return _autoAccept;
     }
 
+    std::string ringtone() const {
+        return _ringtone;
+    }
+
 private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
+    std::string _ringtone;
 };

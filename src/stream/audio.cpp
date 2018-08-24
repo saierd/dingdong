@@ -1,6 +1,6 @@
 #include "audio.h"
 
-#include "gstreamer_helpers.h"
+#include "gstreamer/gstreamer_helpers.h"
 
 // gst-launch-1.0 autoaudiosrc ! mulawenc ! rtppcmupay ! udpsink port=5555
 

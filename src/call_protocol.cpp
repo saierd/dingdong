@@ -12,6 +12,7 @@
 
 using json = nlohmann::json;
 
+#include "audio_player.h"
 #include "call.h"
 #include "util/logging.h"
 
@@ -44,6 +45,8 @@ public:
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 logger->info("Call request from {}, call id {}", machine.toString(), id.toString());
+
+                playRingtone();
 
                 for (auto const& instance : instances.instances()) {
                     if (instance.id() == machine) {
@@ -119,6 +122,16 @@ public:
                 std::lock_guard<std::mutex> lock(mutex);
                 logger->trace("Received ping for {}", id.toString());
                 callLastActivity[id.toString()] = std::chrono::steady_clock::now();
+            }
+
+            json result;
+            result["status"] = "ok";
+            response.set_content(result.dump(), jsonContentType);
+        });
+        httpServer.Get("/ring", [this](httplib::Request const&, httplib::Response& response) {
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                playRingtone();
             }
 
             json result;
@@ -311,6 +324,10 @@ public:
         }
     }
 
+    void playRingtone() {
+        ringtonePlayer.play(self.ringtone());
+    }
+
 public:
     Logger logger;
 
@@ -318,6 +335,8 @@ public:
 
     Settings self;
     InstanceDiscovery const& instances;
+
+    AudioPlayer ringtonePlayer;
 
     std::mutex mutex;
 
@@ -349,6 +368,23 @@ CallProtocol::~CallProtocol() {}
 
 void CallProtocol::requestCall(Instance const& target) {
     impl->logger->debug("Request call to {}", target.id().toString());
+
+    bool alreadyCalled = false;
+    {
+        std::lock_guard<std::mutex> lock(impl->mutex);
+        for (auto const& call : impl->outgoingCalls) {
+            if (call.target().id() == target.id() && !call.isInvalid()) {
+                alreadyCalled = true;
+                break;
+            }
+        }
+    }
+    if (alreadyCalled) {
+        // We already have a call to the target instance. Ring again.
+        auto request = clientForTarget(target);
+        request.Get("/ring");
+        return;
+    }
 
     json data;
     UUID newCallId;

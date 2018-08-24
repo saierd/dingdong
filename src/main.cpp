@@ -1,7 +1,7 @@
 #include "call_protocol.h"
 #include "discovery.h"
 #include "settings.h"
-#include "stream/gstreamer.h"
+#include "gstreamer/gstreamer.h"
 #include "util/logging.h"
 
 #include "ui/call_screen.h"

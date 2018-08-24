@@ -1,6 +1,6 @@
 #include "video.h"
 
-#include "gstreamer_helpers.h"
+#include "gstreamer/gstreamer_helpers.h"
 
 // gst-launch-1.0 -v v4l2src ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink port=5556
 
