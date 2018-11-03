@@ -57,6 +57,7 @@ set(SOURCES
     src/call_protocol.cpp
     src/discovery.cpp
     src/gstreamer/gstreamer.cpp
+    src/gstreamer/gstreamer_helpers.cpp
     src/main.cpp
     src/network/interface.cpp
     src/network/ip_address.cpp

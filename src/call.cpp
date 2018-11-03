@@ -105,10 +105,12 @@ std::string const callLogCategory = "call";
 
 class Call::Impl {
 public:
-    Impl(Instance const& target) : target(target) {
+    Impl(Settings const& settings, Instance const& target) : target(target) {
+        audioSourceDevice = settings.audioSourceDevice();
         logger = categoryLogger(callLogCategory);
     }
 
+    std::string audioSourceDevice;
     Instance target;
     UUID id;
 
@@ -122,8 +124,8 @@ public:
     Logger logger;
 };
 
-Call::Call(Instance const& target) {
-    impl = std::make_unique<Impl>(target);
+Call::Call(Settings const& settings, Instance const& target) {
+    impl = std::make_unique<Impl>(settings, target);
 
     impl->receiverPort = globalPortManager.getPort();
     if (impl->receiverPort.isValid()) {
@@ -133,7 +135,7 @@ Call::Call(Instance const& target) {
     }
 }
 
-Call::Call(UUID const& id, Instance const& target) : Call(target) {
+Call::Call(Settings const& settings, UUID const& id, Instance const& target) : Call(settings, target) {
     impl->id = id;
 }
 
@@ -162,7 +164,7 @@ int Call::receiverPort() const {
 
 void Call::connect(int senderPort) {
     impl->logger->info("Connecting audio sender to {}:{}", impl->target.ipAddress().toString(), senderPort);
-    impl->sender = std::make_unique<AudioSender>(impl->target.ipAddress(), senderPort);
+    impl->sender = std::make_unique<AudioSender>(impl->target.ipAddress(), senderPort, impl->audioSourceDevice);
 }
 
 void Call::start() {

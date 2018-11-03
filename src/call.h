@@ -3,14 +3,15 @@
 #include <memory>
 
 #include "instance.h"
+#include "settings.h"
 #include "system/uuid.h"
 
 class Call {
 public:
     // Create a call. Note that this will not send anything yet, but it will
     // start the receiver thread on our side on a free port.
-    Call(UUID const& id, Instance const& target);
-    Call(Instance const& target);
+    Call(Settings const& settings, UUID const& id, Instance const& target);
+    Call(Settings const& settings, Instance const& target);
     ~Call();
 
     Call(Call const&) = delete;

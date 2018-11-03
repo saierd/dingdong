@@ -1,42 +1,35 @@
 #include "audio.h"
 
 #include "gstreamer/gstreamer_helpers.h"
-
-// gst-launch-1.0 autoaudiosrc ! mulawenc ! rtppcmupay ! udpsink port=5555
+#include "util/logging.h"
 
 class AudioSender::Impl {
 public:
     GstElement* pipeline = nullptr;
-    GstElement* source = nullptr;
-    GstElement* encode = nullptr;
-    GstElement* rtpPayload = nullptr;
-    GstElement* udpSink = nullptr;
-
     bool isRunning = false;
 };
 
-AudioSender::AudioSender(IpAddress const& targetHost, int targetPort) {
+AudioSender::AudioSender(IpAddress const& targetHost, int targetPort, std::string const& audioSourceDevice) {
     impl = std::make_unique<Impl>();
 
-    impl->pipeline = gst_pipeline_new("sender");
-    impl->source = gst_element_factory_make("alsasrc", nullptr);
+    std::string sourceParameters;
+    if (!audioSourceDevice.empty()) {
+        sourceParameters = fmt::format(" device=\"{}\"", audioSourceDevice);
 #ifdef RASPBERRY_PI
-    // On the Raspberry Pi we need to explicitly set the source device, even
-    // if it is the only available microphone. Otherwise opening it will fail.
-    g_object_set(g_object_cast(impl->source), "device", "plughw:1,0", nullptr);
+    } else {
+        categoryLogger("gstreamer")->warn("On Raspberry Pi the audio source device must be specified explicitly");
 #endif
-    impl->encode = gst_element_factory_make("mulawenc", nullptr);
-    impl->rtpPayload = gst_element_factory_make("rtppcmupay", nullptr);
-    impl->udpSink = gst_element_factory_make("udpsink", nullptr);
-    g_object_set(g_object_cast(impl->udpSink), "host", targetHost.toString().c_str(), nullptr);
-    g_object_set(g_object_cast(impl->udpSink), "port", targetPort, nullptr);
+    }
 
-    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);
-    gst_element_link_many(impl->source, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);
+    std::string pipeline = fmt::format("pulsesrc{} ! queue ! audioconvert ! mulawenc ! rtppcmupay ! udpsink host={} port={}", sourceParameters, targetHost.toString(), targetPort);
+    impl->pipeline = runGStreamerPipeline(pipeline);
 }
 
 AudioSender::~AudioSender() {
-    if (impl->pipeline) gst_object_unref(gst_object_cast(impl->pipeline));
+    if (impl->pipeline) {
+        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
+        gst_object_unref(gst_object_cast(impl->pipeline));
+    }
 }
 
 void AudioSender::start() {
@@ -53,39 +46,23 @@ bool AudioSender::isRunning() const {
     return impl->isRunning;
 }
 
-// gst-launch-1.0 udpsrc port=5555 caps="application/x-rtp" ! rtppcmudepay ! mulawdec ! audioconvert ! alsasink
-
 class AudioReceiver::Impl {
 public:
     GstElement* pipeline = nullptr;
-    GstElement* source = nullptr;
-    GstElement* rtpDepay = nullptr;
-    GstElement* decode = nullptr;
-    GstElement* convert = nullptr;
-    GstElement* sink = nullptr;
 };
 
 AudioReceiver::AudioReceiver(int sourcePort) {
     impl = std::make_unique<Impl>();
 
-    impl->pipeline = gst_pipeline_new("receiver");
-
-    impl->source = gst_element_factory_make("udpsrc", nullptr);
-    g_object_set(g_object_cast(impl->source), "port", sourcePort, nullptr);
-    GstCaps* sourceCaps = gst_caps_new_empty_simple("application/x-rtp");
-    g_object_set(g_object_cast(impl->source), "caps", sourceCaps, nullptr);
-
-    impl->rtpDepay = gst_element_factory_make("rtppcmudepay", nullptr);
-    impl->decode = gst_element_factory_make("mulawdec", nullptr);
-    impl->convert = gst_element_factory_make("audioconvert", nullptr);
-    impl->sink = gst_element_factory_make("alsasink", nullptr);
-
-    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);
-    gst_element_link_many(impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);
+    std::string pipeline = fmt::format("udpsrc port={} caps=\"application/x-rtp\" ! rtpjitterbuffer latency=100 ! rtppcmudepay ! mulawdec ! audioconvert ! audioresample ! pulsesink sync=false", sourcePort);
+    impl->pipeline = runGStreamerPipeline(pipeline);
 }
 
 AudioReceiver::~AudioReceiver() {
-    if (impl->pipeline) gst_object_unref(gst_object_cast(impl->pipeline));
+    if (impl->pipeline) {
+        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
+        gst_object_unref(gst_object_cast(impl->pipeline));
+    }
 }
 
 void AudioReceiver::start() {

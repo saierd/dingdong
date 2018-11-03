@@ -7,7 +7,7 @@
 
 class AudioSender {
 public:
-    AudioSender(IpAddress const& targetHost, int targetPort);
+    AudioSender(IpAddress const& targetHost, int targetPort, std::string const& audioSourceDevice = "");
     ~AudioSender();
 
     void start();

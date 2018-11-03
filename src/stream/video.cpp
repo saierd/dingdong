@@ -36,7 +36,10 @@ VideoSender::VideoSender(IpAddress const& targetHost, int targetPort) {
 }
 
 VideoSender::~VideoSender() {
-    if (impl->pipeline) gst_object_unref(gst_object_cast(impl->pipeline));
+    if (impl->pipeline) {
+        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
+        gst_object_unref(gst_object_cast(impl->pipeline));
+    }
 }
 
 void VideoSender::start() {
@@ -79,7 +82,10 @@ VideoReceiver::VideoReceiver(int sourcePort) {
 }
 
 VideoReceiver::~VideoReceiver() {
-    if (impl->pipeline) gst_object_unref(gst_object_cast(impl->pipeline));
+    if (impl->pipeline) {
+        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
+        gst_object_unref(gst_object_cast(impl->pipeline));
+    }
 }
 
 void VideoReceiver::start() {

@@ -24,6 +24,7 @@ Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown
         if (!_showCallScreen) {
             _autoAccept = true; // Can't accept calls otherwise.
         }
+        getValueFromJson(_audioSourceDevice, data, "audioSourceDevice");
         getValueFromJson(_ringtone, data, "ringtone");
     }
 }
