@@ -8,7 +8,7 @@ struct sockaddr;
 class IpAddress {
 public:
     IpAddress() : address(0) {}
-    explicit IpAddress(std::uint32_t address) : address(address) {}
+    explicit IpAddress(std::uint32_t _address) : address(_address) {}
     explicit IpAddress(std::string const& addressString);
     explicit IpAddress(struct sockaddr const* addr);
 

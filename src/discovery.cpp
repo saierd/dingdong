@@ -85,7 +85,7 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
 
 class InstanceDiscovery::Impl {
 public:
-    Impl(Instance const& self) : self(self) {}
+    Impl(Instance const& _self) : self(_self) {}
 
     Instance self;
 

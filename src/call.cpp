@@ -11,7 +11,7 @@ public:
     class Handle {
     private:
         friend class PortManager;
-        Handle(PortManager* manager, int port) : manager(manager), port(port) {}
+        Handle(PortManager* _manager, int _port) : manager(_manager), port(_port) {}
 
     public:
         Handle() {
@@ -105,7 +105,7 @@ std::string const callLogCategory = "call";
 
 class Call::Impl {
 public:
-    Impl(Settings const& settings, Instance const& target) : target(target) {
+    Impl(Settings const& settings, Instance const& _target) : target(_target) {
         audioSourceDevice = settings.audioSourceDevice();
         logger = categoryLogger(callLogCategory);
     }

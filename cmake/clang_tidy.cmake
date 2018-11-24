@@ -1,4 +1,9 @@
-find_program(CLANG_TIDY_EXE NAMES "clang-tidy" "clang-tidy-6.0")
+find_program(CLANG_TIDY_EXE NAMES
+    "clang-tidy-8.0"
+    "clang-tidy-8"
+    "clang-tidy-7.0"
+    "clang-tidy-6.0"
+    "clang-tidy")
 
 if (CLANG_TIDY_EXE)
     set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")

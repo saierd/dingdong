@@ -10,7 +10,8 @@ endif()
 # Note that we cannot use C++17, because Raspbian currently has GCC 6.3.
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror -Wnon-virtual-dtor -Wold-style-cast")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdouble-promotion -Wnon-virtual-dtor -Wnull-dereference -Wold-style-cast -Wshadow")
 
 if (RASPBERRY_PI)
     # Avoid a warning in the json library with GCC 6 on Raspberry.
@@ -79,9 +80,21 @@ set(CONFIG_FILES
 
 compile_gresource(resources/resources.xml RESOURCE_FILE)
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${RESOURCE_FILE} ${CONFIG_FILES})
-target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_link_libraries(${PROJECT_NAME} PRIVATE gstreamer gtkmm spdlog libuuid cpp-httplib nlohmann_json Threads::Threads)
+add_executable(${PROJECT_NAME}
+    ${HEADERS}
+    ${SOURCES}
+    ${RESOURCE_FILE}
+    ${CONFIG_FILES})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    src)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    gstreamer
+    gtkmm
+    spdlog
+    libuuid
+    cpp-httplib
+    nlohmann_json
+    Threads::Threads)
 
 if (RASPBERRY_PI)
     target_compile_definitions(${PROJECT_NAME} PRIVATE RASPBERRY_PI)
