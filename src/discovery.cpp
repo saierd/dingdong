@@ -30,11 +30,7 @@ struct DiscoveryMessage {
     }
 
     Instance toInstance() const {
-        return {
-            id,
-            name,
-            IpAddress(ipAddress)
-        };
+        return { id, name, IpAddress(ipAddress) };
     }
 
     MachineId id;
@@ -58,7 +54,8 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
     auto nextInterval = std::chrono::steady_clock::now() + interval;
     while (true) {
         for (std::size_t i = 0; i < interfaces.size(); i++) {
-            logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(), interfaces[i].address().toString());
+            logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(),
+                          interfaces[i].address().toString());
             sockets[i].sendStruct(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
         }
 
@@ -79,7 +76,8 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
         if (data.size() == sizeof(DiscoveryMessage)) {
             auto discoveryMessage = reinterpret_cast<DiscoveryMessage const*>(data.data());
             auto instance = discoveryMessage->toInstance();
-            logger->debug("Received discovery message from {} (IP {})", instance.id().toString(), instance.ipAddress().toString());
+            logger->debug("Received discovery message from {} (IP {})", instance.id().toString(),
+                          instance.ipAddress().toString());
             callback(instance);
         }
     }
@@ -141,14 +139,17 @@ public:
 
         auto now = std::chrono::steady_clock::now();
         size_t previousInstanceCount = instances.size();
-        instances.erase(std::remove_if(instances.begin(), instances.end(), [&now, this](Instance const& instance) {
-            if ((now - instanceLastSeen[instance.id().toString()]) > discoveryTimeout) {
-                auto logger = categoryLogger(discoveryLogCategory);
-                logger->debug("Instance {} ({}) timed out", instance.id().toString(), instance.name());
-                return true;
-            }
-            return false;
-        }), instances.end());
+        instances.erase(std::remove_if(instances.begin(), instances.end(),
+                                       [&now, this](Instance const& instance) {
+                                           if ((now - instanceLastSeen[instance.id().toString()]) > discoveryTimeout) {
+                                               auto logger = categoryLogger(discoveryLogCategory);
+                                               logger->debug("Instance {} ({}) timed out", instance.id().toString(),
+                                                             instance.name());
+                                               return true;
+                                           }
+                                           return false;
+                                       }),
+                        instances.end());
 
         for (auto it = instanceLastSeen.begin(); it != instanceLastSeen.end();) {
             bool instanceExists = false;
@@ -181,14 +182,9 @@ public:
 InstanceDiscovery::InstanceDiscovery(Instance const& self) {
     impl = std::make_unique<Impl>(self);
 
-    impl->discoverySenderThread = std::thread([this]() {
-        sendDiscoveryMessages(impl->self, discoverySendInterval);
-    });
-    impl->discoveryReceiverThread = std::thread([this]() {
-        listenForDiscoveries([this](Instance const& instance) {
-            impl->addInstance(instance);
-        });
-    });
+    impl->discoverySenderThread = std::thread([this]() { sendDiscoveryMessages(impl->self, discoverySendInterval); });
+    impl->discoveryReceiverThread = std::thread(
+        [this]() { listenForDiscoveries([this](Instance const& instance) { impl->addInstance(instance); }); });
     impl->cleanupThread = std::thread([this]() {
         auto nextInterval = std::chrono::steady_clock::now() + discoveryCleanupInterval;
         while (true) {

@@ -7,7 +7,7 @@
 #include "gtk_helpers.h"
 
 std::string const acceptButtonColor = "#3B3";
-std::string const cancelButtonColor = "#E20015"; // Same color as the logo.
+std::string const cancelButtonColor = "#E20015";  // Same color as the logo.
 int const callButtonSpacing = 20;
 
 class CallWidget {
@@ -25,15 +25,11 @@ public:
 
         accept.set_label("Accept");
         styleButton(accept, acceptButtonColor);
-        accept.signal_clicked().connect([this]() {
-            onAccept(callId);
-        });
+        accept.signal_clicked().connect([this]() { onAccept(callId); });
 
         cancel.set_label("Cancel");
         styleButton(cancel, cancelButtonColor);
-        cancel.signal_clicked().connect([this]() {
-            onCancel(callId);
-        });
+        cancel.signal_clicked().connect([this]() { onCancel(callId); });
 
         label.set_text(call.targetName);
 

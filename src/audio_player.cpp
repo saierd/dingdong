@@ -21,7 +21,8 @@ AudioPlayer::AudioPlayer() {
     impl->convert = gst_element_factory_make("audioconvert", nullptr);
     impl->resample = gst_element_factory_make("audioresample", nullptr);
     impl->sink = gst_element_factory_make("pulsesink", nullptr);
-    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->decoder, impl->convert, impl->resample, impl->sink, nullptr);
+    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->decoder, impl->convert, impl->resample,
+                     impl->sink, nullptr);
     gst_element_link_many(impl->source, impl->decoder, impl->convert, impl->resample, impl->sink, nullptr);
 }
 

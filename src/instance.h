@@ -8,7 +8,8 @@
 // An instance of DingDong running on the network.
 class Instance {
 public:
-    Instance(MachineId id, std::string name, IpAddress ipAddress = IpAddress()) : _id(id), _name(std::move(name)), _ipAddress(ipAddress) {}
+    Instance(MachineId id, std::string name, IpAddress ipAddress = IpAddress())
+        : _id(id), _name(std::move(name)), _ipAddress(ipAddress) {}
 
     MachineId const& id() const {
         return _id;

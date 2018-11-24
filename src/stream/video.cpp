@@ -2,7 +2,8 @@
 
 #include "gstreamer/gstreamer_helpers.h"
 
-// gst-launch-1.0 -v v4l2src ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink port=5556
+// gst-launch-1.0 -v v4l2src ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=500 speed-preset=superfast !
+// rtph264pay ! udpsink port=5556
 
 class VideoSender::Impl {
 public:
@@ -23,16 +24,18 @@ VideoSender::VideoSender(IpAddress const& targetHost, int targetPort) {
     impl->scale = gst_element_factory_make("videoscale", nullptr);
     impl->convert = gst_element_factory_make("videoconvert", nullptr);
     impl->encode = gst_element_factory_make("x264enc", nullptr);
-    g_object_set(g_object_cast(impl->encode), "tune", 4, nullptr); // zerolatency
+    g_object_set(g_object_cast(impl->encode), "tune", 4, nullptr);  // zerolatency
     g_object_set(g_object_cast(impl->encode), "bitrate", 500, nullptr);
-    g_object_set(g_object_cast(impl->encode), "speed-preset", 2, nullptr); // superfast
+    g_object_set(g_object_cast(impl->encode), "speed-preset", 2, nullptr);  // superfast
     impl->rtpPayload = gst_element_factory_make("rtph264pay", nullptr);
     impl->udpSink = gst_element_factory_make("udpsink", nullptr);
     g_object_set(g_object_cast(impl->udpSink), "host", targetHost.toString().c_str(), nullptr);
     g_object_set(g_object_cast(impl->udpSink), "port", targetPort, nullptr);
 
-    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->scale, impl->convert, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);
-    gst_element_link_many(impl->source, impl->scale, impl->convert, impl->encode, impl->rtpPayload, impl->udpSink, nullptr);
+    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->scale, impl->convert, impl->encode,
+                     impl->rtpPayload, impl->udpSink, nullptr);
+    gst_element_link_many(impl->source, impl->scale, impl->convert, impl->encode, impl->rtpPayload, impl->udpSink,
+                          nullptr);
 }
 
 VideoSender::~VideoSender() {
@@ -50,8 +53,8 @@ void VideoSender::stop() {
     gst_element_set_state(impl->pipeline, GST_STATE_PAUSED);
 }
 
-
-// gst-launch-1.0 -v udpsrc port=5556 caps = "application/x-rtp" ! rtph264depay ! decodebin ! videoconvert ! autovideosink
+// gst-launch-1.0 -v udpsrc port=5556 caps = "application/x-rtp" ! rtph264depay ! decodebin ! videoconvert !
+// autovideosink
 
 class VideoReceiver::Impl {
 public:
@@ -77,7 +80,8 @@ VideoReceiver::VideoReceiver(int sourcePort) {
     impl->convert = gst_element_factory_make("videoconvert", nullptr);
     impl->sink = gst_element_factory_make("autovideosink", nullptr);
 
-    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);
+    gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->rtpDepay, impl->decode, impl->convert,
+                     impl->sink, nullptr);
     gst_element_link_many(impl->source, impl->rtpDepay, impl->decode, impl->convert, impl->sink, nullptr);
 }
 

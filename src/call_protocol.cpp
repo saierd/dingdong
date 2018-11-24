@@ -32,7 +32,8 @@ httplib::Client clientForTarget(Instance const& target) {
 
 class CallProtocol::Impl {
 public:
-    Impl(CallProtocol* _protocol, Settings const& _self, InstanceDiscovery const& _instances) : protocol(_protocol), self(_self), instances(_instances) {
+    Impl(CallProtocol* _protocol, Settings const& _self, InstanceDiscovery const& _instances)
+        : protocol(_protocol), self(_self), instances(_instances) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -289,16 +290,19 @@ public:
         }
 
         auto cleanupCallList = [&now, this](std::vector<Call>& calls) {
-            calls.erase(std::remove_if(calls.begin(), calls.end(), [&now, this](Call const& call) {
-                if (call.isInvalid()) return true;
+            calls.erase(std::remove_if(calls.begin(), calls.end(),
+                                       [&now, this](Call const& call) {
+                                           if (call.isInvalid()) return true;
 
-                if ((now - callLastActivity[call.id().toString()]) > callInactivityTimeout) {
-                    logger->debug("Call {} timed out due to inactivity", call.id().toString());
-                    return true;
-                }
+                                           if ((now - callLastActivity[call.id().toString()]) > callInactivityTimeout) {
+                                               logger->debug("Call {} timed out due to inactivity",
+                                                             call.id().toString());
+                                               return true;
+                                           }
 
-                return false;
-            }), calls.end());
+                                           return false;
+                                       }),
+                        calls.end());
         };
 
         cleanupCallList(incomingCalls);
@@ -472,12 +476,7 @@ std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
         for (auto const& call : calls) {
             if (call.isInvalid()) continue;
 
-            result.push_back({
-                call.id(),
-                call.target().name(),
-                call.isRunning(),
-                canBeAccepted && !call.isRunning()
-            });
+            result.push_back({ call.id(), call.target().name(), call.isRunning(), canBeAccepted && !call.isRunning() });
         }
     };
 

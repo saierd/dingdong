@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "screen.h"
 #include "call_protocol.h"
+#include "screen.h"
 
 class CallScreen : public Screen {
 public:

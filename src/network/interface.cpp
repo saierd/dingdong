@@ -13,9 +13,7 @@ std::vector<NetworkInterface> getNetworkInterfaces(bool includeLoopback) {
         if (ifa->ifa_addr == nullptr) continue;
         if (ifa->ifa_addr->sa_family != AF_INET) continue;
 
-        interfaces.emplace_back(ifa->ifa_name,
-                                IpAddress(ifa->ifa_addr),
-                                IpAddress(ifa->ifa_netmask),
+        interfaces.emplace_back(ifa->ifa_name, IpAddress(ifa->ifa_addr), IpAddress(ifa->ifa_netmask),
                                 IpAddress(ifa->ifa_ifu.ifu_broadaddr));
         if (!includeLoopback && interfaces.back().isLoopback()) {
             interfaces.pop_back();

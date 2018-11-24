@@ -21,7 +21,14 @@ AudioSender::AudioSender(IpAddress const& targetHost, int targetPort, std::strin
 #endif
     }
 
-    std::string pipeline = fmt::format("pulsesrc{} ! queue ! audioconvert ! mulawenc ! rtppcmupay ! udpsink host={} port={}", sourceParameters, targetHost.toString(), targetPort);
+    std::string pipeline = fmt::format(
+        "pulsesrc{} ! "
+        "queue ! "
+        "audioconvert ! "
+        "mulawenc ! "
+        "rtppcmupay ! "
+        "udpsink host={} port={}",
+        sourceParameters, targetHost.toString(), targetPort);
     impl->pipeline = runGStreamerPipeline(pipeline);
 }
 
@@ -54,7 +61,15 @@ public:
 AudioReceiver::AudioReceiver(int sourcePort) {
     impl = std::make_unique<Impl>();
 
-    std::string pipeline = fmt::format("udpsrc port={} caps=\"application/x-rtp\" ! rtpjitterbuffer latency=100 ! rtppcmudepay ! mulawdec ! audioconvert ! audioresample ! pulsesink sync=false", sourcePort);
+    std::string pipeline = fmt::format(
+        "udpsrc port={} caps=\"application/x-rtp\" ! "
+        "rtpjitterbuffer latency=100 ! "
+        "rtppcmudepay ! "
+        "mulawdec ! "
+        "audioconvert ! "
+        "audioresample ! "
+        "pulsesink sync=false",
+        sourcePort);
     impl->pipeline = runGStreamerPipeline(pipeline);
 }
 

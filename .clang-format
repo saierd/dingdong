@@ -1,0 +1,12 @@
+---
+BasedOnStyle: Google
+Standard: Cpp11
+IndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+DerivePointerAlignment: false
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Empty
+SpaceAfterTemplateKeyword: false
+Cpp11BracedListStyle: false
+...

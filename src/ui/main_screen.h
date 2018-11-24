@@ -5,8 +5,8 @@
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 
-#include "screen.h"
 #include "instance.h"
+#include "screen.h"
 
 class MainScreen : public Screen {
 public:

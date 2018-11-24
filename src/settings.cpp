@@ -22,7 +22,7 @@ Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown
         getValueFromJson(_showCallScreen, data, "showCallScreen");
         getValueFromJson(_autoAccept, data, "autoAccept");
         if (!_showCallScreen) {
-            _autoAccept = true; // Can't accept calls otherwise.
+            _autoAccept = true;  // Can't accept calls otherwise.
         }
         getValueFromJson(_audioSourceDevice, data, "audioSourceDevice");
         getValueFromJson(_ringtone, data, "ringtone");

@@ -1,12 +1,12 @@
 #include "call_protocol.h"
 #include "discovery.h"
-#include "settings.h"
 #include "gstreamer/gstreamer.h"
+#include "settings.h"
 #include "util/logging.h"
 
 #include "ui/call_screen.h"
-#include "ui/main_window.h"
 #include "ui/main_screen.h"
+#include "ui/main_window.h"
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
         // Update the buttons on the main screen for the new instances.
         Glib::signal_idle().connect([&]() {
             mainScreen.updateInstances(discovery.instances());
-            return false; // Disconnect the function.
+            return false;  // Disconnect the function.
         });
     });
 
@@ -55,16 +55,12 @@ int main(int argc, char** argv) {
     calls.onCallsChanged.connect([&updateCallScreen]() {
         Glib::signal_idle().connect([&]() {
             updateCallScreen();
-            return false; // Disconnect the function.
+            return false;  // Disconnect the function.
         });
     });
 
-    callScreen.onAccept.connect([&calls](UUID const& id) {
-        calls.acceptCall(id);
-    });
-    callScreen.onCancel.connect([&calls](UUID const& id) {
-        calls.cancelCall(id);
-    });
+    callScreen.onAccept.connect([&calls](UUID const& id) { calls.acceptCall(id); });
+    callScreen.onCancel.connect([&calls](UUID const& id) { calls.cancelCall(id); });
 
     mainWindow.showScreen(mainScreen);
     return app->run(mainWindow);

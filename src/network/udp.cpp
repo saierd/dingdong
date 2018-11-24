@@ -62,7 +62,8 @@ UdpSocket::Data UdpSocket::receive(size_t maxPacketSize) const {
     struct sockaddr_in remoteAddr;
     socklen_t remoteAddrSize = sizeof(remoteAddr);
 
-    int receivedBytes = recvfrom(handle, data.data(), data.size(), 0, reinterpret_cast<struct sockaddr*>(&remoteAddr), &remoteAddrSize);
+    int receivedBytes =
+        recvfrom(handle, data.data(), data.size(), 0, reinterpret_cast<struct sockaddr*>(&remoteAddr), &remoteAddrSize);
 
     data.resize(receivedBytes);
     return data;

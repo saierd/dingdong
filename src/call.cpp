@@ -139,7 +139,7 @@ Call::Call(Settings const& settings, UUID const& id, Instance const& target) : C
     impl->id = id;
 }
 
-Call::~Call() {} // Stops automatically in the destructor of the streams.
+Call::~Call() {}  // Stops automatically in the destructor of the streams.
 
 Call::Call(Call&& other) {
     impl = std::move(other.impl);

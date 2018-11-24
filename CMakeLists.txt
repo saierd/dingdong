@@ -74,6 +74,7 @@ set(SOURCES
     src/util/logging.cpp)
 
 set(CONFIG_FILES
+    .clang-format
     .clang-tidy)
 
 compile_gresource(resources/resources.xml RESOURCE_FILE)

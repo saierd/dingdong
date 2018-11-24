@@ -1,7 +1,7 @@
 #pragma once
 
-#include <gtkmm/widget.h>
 #include <gtkmm/cssprovider.h>
+#include <gtkmm/widget.h>
 
 inline void applyCss(Gtk::Widget& widget, std::string const& css) {
     auto cssProvider = Gtk::CssProvider::create();
@@ -16,21 +16,28 @@ inline void setBackgroundColor(Gtk::Widget& widget, std::string const& color) {
 }
 
 inline void setFont(Gtk::Widget& widget, int fontSize, bool bold = false) {
-    std::string css = "* {" \
-        "font-size: " + std::to_string(fontSize) + "px;" \
-        "font-weight: " + (bold ? "bold" : "normal") + ";" \
-    "}";
+    // clang-format off
+    std::string css =
+        "* {"
+            "font-size: " + std::to_string(fontSize) + "px;"
+            "font-weight: " + (bold ? "bold" : "normal") + ";"
+        "}";
+    // clang-format on
     applyCss(widget, css);
 }
 
-inline void styleButton(Gtk::Widget& widget, std::string const& color, std::string const& fontColor = "#FFF", int padding = 0) {
-    std::string css = "* {" \
-        "background: " + color + ";" \
-        "border: none;" \
-        "border-radius: 10px;" \
-        "color: " + fontColor + ";" \
-        "padding-top: " + std::to_string(padding) + "px;" \
-        "padding-bottom: " + std::to_string(padding) + "px;" \
-    "}";
+inline void styleButton(Gtk::Widget& widget, std::string const& color, std::string const& fontColor = "#FFF",
+                        int padding = 0) {
+    // clang-format off
+    std::string css =
+        "* {"
+            "background: " + color + ";"
+            "border: none;"
+            "border-radius: 10px;"
+            "color: " + fontColor + ";"
+            "padding-top: " + std::to_string(padding) + "px;"
+            "padding-bottom: " + std::to_string(padding) + "px;"
+        "}";
+    // clang-format on
     applyCss(widget, css);
 }
