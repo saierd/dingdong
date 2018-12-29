@@ -4,8 +4,6 @@
 
 #include "gst/gst.h"
 
-GstElement* runGStreamerPipeline(std::string const& pipeline);
-
 template<typename T>
 decltype(auto) g_object_cast(T value) {
 #pragma GCC diagnostic push

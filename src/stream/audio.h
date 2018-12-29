@@ -3,12 +3,12 @@
 #include <memory>
 #include <string>
 
+#include "gstreamer/pipeline.h"
 #include "network/ip_address.h"
 
 class AudioSender {
 public:
     AudioSender(IpAddress const& targetHost, int targetPort, std::string const& audioSourceDevice = "");
-    ~AudioSender();
 
     void start();
     void stop();
@@ -16,19 +16,16 @@ public:
     bool isRunning() const;
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };
 
 class AudioReceiver {
 public:
     AudioReceiver(int sourcePort);
-    ~AudioReceiver();
 
     void start();
     void stop();
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };

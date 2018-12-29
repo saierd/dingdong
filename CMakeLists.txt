@@ -36,6 +36,7 @@ set(HEADERS
     src/discovery.h
     src/gstreamer/gstreamer.h
     src/gstreamer/gstreamer_helpers.h
+    src/gstreamer/pipeline.h
     src/instance.h
     src/network/interface.h
     src/network/ip_address.h
@@ -58,7 +59,7 @@ set(SOURCES
     src/call_protocol.cpp
     src/discovery.cpp
     src/gstreamer/gstreamer.cpp
-    src/gstreamer/gstreamer_helpers.cpp
+    src/gstreamer/pipeline.cpp
     src/main.cpp
     src/network/interface.cpp
     src/network/ip_address.cpp

@@ -3,15 +3,7 @@
 #include "gstreamer/gstreamer_helpers.h"
 #include "util/logging.h"
 
-class AudioSender::Impl {
-public:
-    GstElement* pipeline = nullptr;
-    bool isRunning = false;
-};
-
 AudioSender::AudioSender(IpAddress const& targetHost, int targetPort, std::string const& audioSourceDevice) {
-    impl = std::make_unique<Impl>();
-
     std::string sourceParameters;
     if (!audioSourceDevice.empty()) {
         sourceParameters = fmt::format(" device=\"{}\"", audioSourceDevice);
@@ -21,7 +13,7 @@ AudioSender::AudioSender(IpAddress const& targetHost, int targetPort, std::strin
 #endif
     }
 
-    std::string pipeline = fmt::format(
+    std::string pipelineSpecification = fmt::format(
         "pulsesrc{} ! "
         "queue ! "
         "audioconvert ! "
@@ -29,39 +21,23 @@ AudioSender::AudioSender(IpAddress const& targetHost, int targetPort, std::strin
         "rtppcmupay ! "
         "udpsink host={} port={}",
         sourceParameters, targetHost.toString(), targetPort);
-    impl->pipeline = runGStreamerPipeline(pipeline);
-}
-
-AudioSender::~AudioSender() {
-    if (impl->pipeline) {
-        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
-        gst_object_unref(gst_object_cast(impl->pipeline));
-    }
+    pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
 
 void AudioSender::start() {
-    gst_element_set_state(impl->pipeline, GST_STATE_PLAYING);
-    impl->isRunning = true;
+    pipeline->start();
 }
 
 void AudioSender::stop() {
-    gst_element_set_state(impl->pipeline, GST_STATE_PAUSED);
-    impl->isRunning = false;
+    pipeline->stop();
 }
 
 bool AudioSender::isRunning() const {
-    return impl->isRunning;
+    return pipeline->isRunning();
 }
 
-class AudioReceiver::Impl {
-public:
-    GstElement* pipeline = nullptr;
-};
-
 AudioReceiver::AudioReceiver(int sourcePort) {
-    impl = std::make_unique<Impl>();
-
-    std::string pipeline = fmt::format(
+    std::string pipelineSpecification = fmt::format(
         "udpsrc port={} caps=\"application/x-rtp\" ! "
         "rtpjitterbuffer latency=100 ! "
         "rtppcmudepay ! "
@@ -70,20 +46,13 @@ AudioReceiver::AudioReceiver(int sourcePort) {
         "audioresample ! "
         "pulsesink sync=false",
         sourcePort);
-    impl->pipeline = runGStreamerPipeline(pipeline);
-}
-
-AudioReceiver::~AudioReceiver() {
-    if (impl->pipeline) {
-        gst_element_set_state(impl->pipeline, GST_STATE_NULL);
-        gst_object_unref(gst_object_cast(impl->pipeline));
-    }
+    pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
 
 void AudioReceiver::start() {
-    gst_element_set_state(impl->pipeline, GST_STATE_PLAYING);
+    pipeline->start();
 }
 
 void AudioReceiver::stop() {
-    gst_element_set_state(impl->pipeline, GST_STATE_PAUSED);
+    pipeline->stop();
 }
