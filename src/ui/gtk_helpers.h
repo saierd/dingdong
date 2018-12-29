@@ -1,6 +1,8 @@
 #pragma once
 
+#include <gdkmm/pixbuf.h>
 #include <gtkmm/cssprovider.h>
+#include <gtkmm/image.h>
 #include <gtkmm/widget.h>
 
 inline void applyCss(Gtk::Widget& widget, std::string const& css) {
@@ -40,4 +42,22 @@ inline void styleButton(Gtk::Widget& widget, std::string const& color, std::stri
         "}";
     // clang-format on
     applyCss(widget, css);
+}
+
+inline void loadImageWithSize(Gtk::Image& image, std::string const& resourcePath, int width, int height = 0,
+                              bool forceWhite = false) {
+    auto pixbuf = Gdk::Pixbuf::create_from_resource(resourcePath, width, height ? height : width);
+
+    if (forceWhite) {
+        auto data = pixbuf->get_pixels();
+        for (int i = 0; i < pixbuf->get_width() * pixbuf->get_height(); i++) {
+            data[0] = 255;
+            data[1] = 255;
+            data[2] = 255;
+            // Don't touch transparency.
+            data += 4;
+        }
+    }
+
+    image.set(pixbuf);
 }

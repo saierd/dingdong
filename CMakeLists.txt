@@ -84,6 +84,7 @@ compile_gresource(resources/resources.xml RESOURCE_FILE)
 add_executable(${PROJECT_NAME}
     ${HEADERS}
     ${SOURCES}
+    resources/resources.xml
     ${RESOURCE_FILE}
     ${CONFIG_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE

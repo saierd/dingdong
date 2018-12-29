@@ -2,6 +2,7 @@
 
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/image.h>
 #include <gtkmm/label.h>
 
 #include "gtk_helpers.h"
@@ -23,11 +24,13 @@ public:
         hbox.pack_start(accept);
         hbox.pack_start(cancel);
 
-        accept.set_label("Accept");
+        loadImageWithSize(acceptIcon, "/call_start.svg", 64, 0, true);
+        accept.set_image(acceptIcon);
         styleButton(accept, acceptButtonColor);
         accept.signal_clicked().connect([this]() { onAccept(callId); });
 
-        cancel.set_label("Cancel");
+        loadImageWithSize(cancelIcon, "/call_stop.svg", 64, 0, true);
+        cancel.set_image(cancelIcon);
         styleButton(cancel, cancelButtonColor);
         cancel.signal_clicked().connect([this]() { onCancel(callId); });
 
@@ -49,6 +52,7 @@ private:
 
     Gtk::Box vbox, hbox;
     Gtk::Button accept, cancel;
+    Gtk::Image acceptIcon, cancelIcon;
     Gtk::Label label;
 };
 

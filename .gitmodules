@@ -7,3 +7,6 @@
 [submodule "3rdparty/json"]
 	path = 3rdparty/json
 	url = https://github.com/nlohmann/json
+[submodule "3rdparty/material-design-icons"]
+	path = 3rdparty/material-design-icons
+	url = https://github.com/google/material-design-icons.git
