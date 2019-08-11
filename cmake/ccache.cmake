@@ -1,0 +1,5 @@
+find_program(CCACHE_EXE "ccache")
+if (CCACHE_EXE)
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_EXE}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_EXE}")
+endif()

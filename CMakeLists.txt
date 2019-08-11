@@ -20,6 +20,7 @@ if (RASPBERRY_PI)
 endif()
 
 include(cmake/clang_tidy.cmake)
+include(cmake/ccache.cmake)
 include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
