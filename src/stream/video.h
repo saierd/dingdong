@@ -20,7 +20,7 @@ private:
 
 class VideoReceiver {
 public:
-    VideoReceiver(int sourcePort);
+    explicit VideoReceiver(int sourcePort);
     ~VideoReceiver();
 
     void start();

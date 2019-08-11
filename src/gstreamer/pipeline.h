@@ -7,7 +7,7 @@ typedef struct _GstElement GstElement;
 
 class Pipeline {
 public:
-    Pipeline(std::string const& specification);
+    explicit Pipeline(std::string const& specification);
     ~Pipeline();
 
     void start();

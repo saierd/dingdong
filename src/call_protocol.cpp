@@ -39,7 +39,7 @@ public:
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
             auto data = json::parse(request.body);
             UUID id(data["id"].get<std::string>());
-            MachineId machine = data["machine"].get<std::string>();
+            MachineId machine(data["machine"].get<std::string>());
             int senderPort = data["port"];
 
             bool foundInstance = false;

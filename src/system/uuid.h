@@ -6,7 +6,7 @@
 class UUID {
 public:
     UUID();
-    UUID(std::string const& uuid);
+    explicit UUID(std::string const& uuid);
 
     std::string toString() const;
 
@@ -19,5 +19,5 @@ public:
     }
 
 private:
-    std::array<unsigned char, 16> id;
+    std::array<uint8_t, 16> id;
 };

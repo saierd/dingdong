@@ -4,11 +4,9 @@
 
 class MachineId {
 public:
-    MachineId(std::string const& data);
+    explicit MachineId(std::string const& data);
 
-    std::string toString() const {
-        return std::string(id.data(), id.size());
-    }
+    std::string toString() const;
 
     bool operator==(MachineId const& other) const {
         return id == other.id;
@@ -19,7 +17,7 @@ public:
     }
 
 private:
-    std::array<char, 32> id;
+    std::array<uint8_t, 32> id;
 };
 
 MachineId getMachineId();

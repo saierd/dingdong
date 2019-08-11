@@ -5,7 +5,7 @@
 #include "network/ip_address.h"
 #include "system/machine_id.h"
 
-// An instance of DingDong running on the network.
+// An instance of the application running on the network.
 class Instance {
 public:
     Instance(MachineId id, std::string name, IpAddress ipAddress = IpAddress())

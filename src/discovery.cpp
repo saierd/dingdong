@@ -34,7 +34,7 @@ struct DiscoveryMessage {
     }
 
     MachineId id;
-    char name[discoveryNameSize];
+    char name[discoveryNameSize + 1];
     std::uint32_t ipAddress;
 };
 

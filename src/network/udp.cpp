@@ -31,7 +31,7 @@ void UdpSocket::bind(int port) {
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(static_cast<unsigned short>(port));
+    addr.sin_port = htons(static_cast<decltype(addr.sin_port)>(port));
 
     ::bind(handle, reinterpret_cast<struct sockaddr const*>(&addr), sizeof(addr));
 }
@@ -41,13 +41,13 @@ void UdpSocket::allowBroadcasts() {
     setsockopt(handle, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
 }
 
-void UdpSocket::send(unsigned char const* data, int size, IpAddress const& address, int port) const {
+void UdpSocket::send(uint8_t const* data, int size, IpAddress const& address, int port) const {
     struct sockaddr_in addr;
 
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(address.rawAddress());
-    addr.sin_port = htons(static_cast<unsigned short>(port));
+    addr.sin_port = htons(static_cast<decltype(addr.sin_port)>(port));
 
     sendto(handle, data, size, 0, reinterpret_cast<struct sockaddr const*>(&addr), sizeof(addr));
 }

@@ -6,7 +6,7 @@
 
 class Settings : public Instance {
 public:
-    Settings(std::string settingsFile);
+    explicit Settings(std::string settingsFile);
 
     bool showCallScreen() const {
         return _showCallScreen;

@@ -8,7 +8,7 @@
 
 class InstanceDiscovery {
 public:
-    InstanceDiscovery(Instance const& self);
+    explicit InstanceDiscovery(Instance const& self);
     ~InstanceDiscovery();
 
     using InstancesChangedCallback = std::function<void(std::vector<Instance> const&)>;
