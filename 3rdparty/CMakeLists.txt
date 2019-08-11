@@ -1,7 +1,7 @@
-set(SPDLOG_BUILD_TESTING OFF)
+option(SPDLOG_BUILD_TESTING OFF)
 add_subdirectory(spdlog)
 
-set(JSON_BuildTests OFF)
+option(JSON_BuildTests OFF)
 add_subdirectory(json)
 
 add_library(cpp-httplib INTERFACE)
