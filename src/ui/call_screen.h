@@ -16,6 +16,7 @@ public:
 
     sigc::signal<void, UUID const&> onAccept;
     sigc::signal<void, UUID const&> onCancel;
+    sigc::signal<void, UUID const&, bool> onMute;
 
 private:
     class Impl;

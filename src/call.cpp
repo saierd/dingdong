@@ -113,6 +113,7 @@ public:
     UUID id;
 
     bool invalid = false;
+    bool muted = false;
 
     std::unique_ptr<AudioSender> sender;
     int senderPort = -1;
@@ -174,6 +175,7 @@ void Call::start() {
         impl->logger->info("Starting sender for call {}", impl->id.toString());
         impl->sender->start();
     }
+    impl->muted = false;
 }
 
 void Call::stop() {
@@ -183,8 +185,22 @@ void Call::stop() {
     }
 }
 
+void Call::mute() {
+    stop();
+    impl->muted = true;
+}
+
+void Call::unmute() {
+    start();
+    impl->muted = false;
+}
+
 bool Call::isRunning() const {
-    return impl->sender && impl->sender->isRunning();
+    return isMuted() || (impl->sender && impl->sender->isRunning());
+}
+
+bool Call::isMuted() const {
+    return impl->muted;
 }
 
 bool Call::isInvalid() const {

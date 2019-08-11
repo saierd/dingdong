@@ -33,7 +33,11 @@ public:
     void start();
     void stop();
 
+    void mute();
+    void unmute();
+
     bool isRunning() const;
+    bool isMuted() const;
 
     bool isInvalid() const;
     void invalidate();

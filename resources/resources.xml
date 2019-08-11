@@ -4,5 +4,7 @@
         <file alias="logo.png">logo/logo.png</file>
         <file alias="call_start.svg">../3rdparty/material-design-icons/communication/svg/production/ic_call_24px.svg</file>
         <file alias="call_stop.svg">../3rdparty/material-design-icons/communication/svg/production/ic_call_end_24px.svg</file>
+        <file alias="microphone.svg">../3rdparty/material-design-icons/av/svg/production/ic_mic_24px.svg</file>
+        <file alias="microphone_off.svg">../3rdparty/material-design-icons/av/svg/production/ic_mic_off_24px.svg</file>
     </gresource>
 </gresources>

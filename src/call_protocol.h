@@ -16,6 +16,7 @@ struct CallInfo {
     UUID id;
     std::string targetName;
     bool isRunning;
+    bool isMuted;
     bool canBeAccepted;
 };
 
@@ -30,6 +31,7 @@ public:
     void acceptCall(UUID const& id, std::optional<int> receiverPort = std::nullopt);
     // Reject an incoming call or stop any active call with the given id.
     void cancelCall(UUID const& id);
+    void muteCall(UUID const& id, bool mute = true);
 
     sigc::signal<void> onCallsChanged;
     std::vector<CallInfo> currentActiveCalls() const;

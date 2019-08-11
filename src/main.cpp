@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
 
     callScreen.onAccept.connect([&calls](UUID const& id) { calls.acceptCall(id); });
     callScreen.onCancel.connect([&calls](UUID const& id) { calls.cancelCall(id); });
+    callScreen.onMute.connect([&calls](UUID const& id, bool mute) { calls.muteCall(id, mute); });
 
     mainWindow.showScreen(mainScreen);
     return app->run(mainWindow);

@@ -483,6 +483,27 @@ void CallProtocol::cancelCall(UUID const& id) {
     impl->cancelCall(id);
 }
 
+void CallProtocol::muteCall(UUID const& id, bool mute) {
+    std::unique_lock<std::mutex> lock(impl->mutex);
+
+    auto call = impl->incomingCallById(id);
+    if (call == nullptr) {
+        call = impl->outgoingCallById(id);
+    }
+
+    if (call != nullptr) {
+        if (mute && !call->isMuted()) {
+            impl->logger->info("Muting call {}", id.toString());
+            call->mute();
+        } else if (call->isMuted()) {
+            impl->logger->info("Unmuting call {}", id.toString());
+            call->unmute();
+        }
+
+        onCallsChanged();
+    }
+}
+
 std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
     std::lock_guard<std::mutex> lock(impl->mutex);
 
@@ -491,7 +512,8 @@ std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
         for (auto const& call : calls) {
             if (call.isInvalid()) continue;
 
-            result.push_back({ call.id(), call.target().name(), call.isRunning(), canBeAccepted && !call.isRunning() });
+            result.push_back({ call.id(), call.target().name(), call.isRunning(), call.isMuted(),
+                               canBeAccepted && !call.isRunning() });
         }
     };
 
