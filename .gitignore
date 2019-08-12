@@ -1,1 +1,5 @@
 settings.json
+
+# The build directory might often be ignored by the user's global gitignore, assuming it contains
+# an out of source build. In our case, it contains the cross-compilation build system.
+!build/

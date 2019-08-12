@@ -7,8 +7,7 @@ if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
     set(RASPBERRY_PI ON)
 endif()
 
-# Note that we cannot use C++17, because Raspbian currently has GCC 6.3.
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdouble-promotion -Wnon-virtual-dtor -Wnull-dereference -Wold-style-cast -Wshadow")

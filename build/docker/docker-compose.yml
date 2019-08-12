@@ -1,0 +1,16 @@
+version: '3'
+services:
+  dingdong_development_environment:
+    build: .
+
+    # Mount the code into the container.
+    volumes:
+    - ../..:/workspace
+
+    command: sleep infinity
+
+    # This is necessary for using ptrace based debuggers in the container.
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
