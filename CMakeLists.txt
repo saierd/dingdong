@@ -23,6 +23,7 @@ include(cmake/ccache.cmake)
 include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
+include(cmake/openssl.cmake)
 include(cmake/uuid.cmake)
 
 find_package(Threads REQUIRED)
@@ -30,6 +31,12 @@ find_package(Threads REQUIRED)
 add_subdirectory(3rdparty)
 
 set(HEADERS
+    src/access_control/access_control.h
+    src/access_control/action.h
+    src/access_control/actions/callback.h
+    src/access_control/actions/gpio.h
+    src/access_control/key.h
+    src/access_control/rfid_scanner.h
     src/audio_player.h
     src/call.h
     src/call_protocol.h
@@ -44,17 +51,28 @@ set(HEADERS
     src/settings.h
     src/stream/audio.h
     src/stream/video.h
+    src/system/beep.h
+    src/system/external_process.h
+    src/system/gpio.h
     src/system/machine_id.h
     src/system/uuid.h
-    src/ui/call_screen.h
+    src/ui/constants.h
     src/ui/gtk_helpers.h
-    src/ui/main_screen.h
     src/ui/main_window.h
     src/ui/screen.h
+    src/ui/screens/action_screen.h
+    src/ui/screens/call_screen.h
+    src/ui/screens/key_screen.h
+    src/ui/screens/main_screen.h
     src/util/json.h
     src/util/logging.h)
 
 set(SOURCES
+    src/access_control/access_control.cpp
+    src/access_control/actions/callback.cpp
+    src/access_control/actions/gpio.cpp
+    src/access_control/key.cpp
+    src/access_control/rfid_scanner.cpp
     src/audio_player.cpp
     src/call.cpp
     src/call_protocol.cpp
@@ -68,11 +86,16 @@ set(SOURCES
     src/settings.cpp
     src/stream/audio.cpp
     src/stream/video.cpp
+    src/system/beep.cpp
+    src/system/external_process.cpp
+    src/system/gpio.cpp
     src/system/machine_id.cpp
     src/system/uuid.cpp
-    src/ui/call_screen.cpp
-    src/ui/main_screen.cpp
     src/ui/main_window.cpp
+    src/ui/screens/action_screen.cpp
+    src/ui/screens/call_screen.cpp
+    src/ui/screens/key_screen.cpp
+    src/ui/screens/main_screen.cpp
     src/util/logging.cpp)
 
 set(CONFIG_FILES
@@ -90,12 +113,14 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
     src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    cpp-httplib
     gstreamer
     gtkmm
-    spdlog
     libuuid
-    cpp-httplib
     nlohmann_json
+    openssl
+    pigpio
+    spdlog
     Threads::Threads)
 
 if (RASPBERRY_PI)

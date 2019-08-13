@@ -2,8 +2,6 @@
 
 #include <fstream>
 
-#include "util/json.h"
-
 template<typename T>
 void getValueFromJson(T& variable, Json const& data, std::string const& key) {
     if (data.count(key) > 0) {
@@ -25,5 +23,7 @@ Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown
         getValueFromJson(_ringtone, data, "ringtone");
 
         getValueFromJson(_logLevel, data, "logLevel");
+
+        getValueFromJson(_actions, data, "actions");
     }
 }

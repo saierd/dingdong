@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "glibmm.h"
+#include <glibmm.h>
 
 #include "discovery.h"
 #include "instance.h"

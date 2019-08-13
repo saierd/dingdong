@@ -5,6 +5,8 @@
 #include <gtkmm/image.h>
 #include <gtkmm/widget.h>
 
+#include "constants.h"
+
 inline void applyCss(Gtk::Widget& widget, std::string const& css) {
     auto cssProvider = Gtk::CssProvider::create();
     cssProvider->load_from_data(css);
@@ -17,7 +19,7 @@ inline void setBackgroundColor(Gtk::Widget& widget, std::string const& color) {
     applyCss(widget, css);
 }
 
-inline void setFont(Gtk::Widget& widget, int fontSize, bool bold = false) {
+inline void setFont(Gtk::Widget& widget, int fontSize = applicationFontSize, bool bold = false) {
     // clang-format off
     std::string css =
         "* {"
@@ -28,8 +30,12 @@ inline void setFont(Gtk::Widget& widget, int fontSize, bool bold = false) {
     applyCss(widget, css);
 }
 
-inline void styleButton(Gtk::Widget& widget, std::string const& color, std::string const& fontColor = "#FFF",
-                        int padding = 0) {
+inline void resetFont(Gtk::Widget& widget) {
+    setFont(widget);
+}
+
+inline void styleButton(Gtk::Widget& widget, std::string const& color = colorDarkGrey,
+                        std::string const& fontColor = colorWhite, int padding = defaultPadding) {
     // clang-format off
     std::string css =
         "* {"
@@ -42,6 +48,14 @@ inline void styleButton(Gtk::Widget& widget, std::string const& color, std::stri
         "}";
     // clang-format on
     applyCss(widget, css);
+}
+
+inline void styleButton(Gtk::Widget& widget, std::string const& color, int padding) {
+    styleButton(widget, color, colorWhite, padding);
+}
+
+inline void styleButton(Gtk::Widget& widget, int padding) {
+    styleButton(widget, colorDarkGrey, colorWhite, padding);
 }
 
 inline void loadImageWithSize(Gtk::Image& image, std::string const& resourcePath, int width, int height = 0,
@@ -60,4 +74,12 @@ inline void loadImageWithSize(Gtk::Image& image, std::string const& resourcePath
     }
 
     image.set(pixbuf);
+}
+
+inline void loadButtonIcon(Gtk::Image& image, std::string const& resourcePath) {
+    loadImageWithSize(image, resourcePath, iconSize, iconSize, true);
+}
+
+inline void loadButtonIconLarge(Gtk::Image& image, std::string const& resourcePath) {
+    loadImageWithSize(image, resourcePath, iconSizeLarge, iconSizeLarge, true);
 }

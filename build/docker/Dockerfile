@@ -12,11 +12,12 @@ RUN dpkg --add-architecture armhf \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
     libblkid1:armhf \
-    libglib2.0-0:armhf \
+    libglib2.0-dev:armhf \
     libgstreamer1.0-dev:armhf \
-    libgtkmm-3.0:armhf \
-    libmount1:armhf \
-    libuuid1:armhf \
+    libgtkmm-3.0-dev:armhf \
+    libmount-dev:armhf \
+    libssl-dev:armhf \
+    uuid-dev:armhf \
     x11proto-dev \
 && rm -rf /var/lib/apt/lists/*
 

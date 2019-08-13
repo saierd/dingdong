@@ -1,8 +1,11 @@
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "instance.h"
+#include "util/json.h"
 
 class Settings : public Instance {
 public:
@@ -24,10 +27,16 @@ public:
         return _logLevel;
     }
 
+    Json actions() const {
+        return _actions;
+    }
+
 private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
     std::string _ringtone;
 
     std::string _logLevel;
+
+    Json _actions;
 };

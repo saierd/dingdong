@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "call_protocol.h"
-#include "screen.h"
+#include "ui/screen.h"
 
 class CallScreen : public Screen {
 public:

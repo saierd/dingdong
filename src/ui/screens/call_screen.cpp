@@ -5,14 +5,15 @@
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 
-#include "gtk_helpers.h"
+#include "ui/constants.h"
+#include "ui/gtk_helpers.h"
 
-std::string const acceptButtonColor = "#3B3";
-std::string const cancelButtonColor = "#E20015";  // Same color as the logo.
-std::string const muteButtonColor = "#AAA";
-std::string const unmuteButtonColor = "#F88";
+std::string const acceptButtonColor = colorGreen;
+std::string const cancelButtonColor = colorRed;
+std::string const muteButtonColor = colorLightGrey;
+std::string const unmuteButtonColor = colorLightRed;
 
-int const callButtonSpacing = 20;
+int const callButtonSpacing = defaultSpacing;
 int const muteButtonWidth = 300;
 
 class CallWidget {
@@ -34,18 +35,18 @@ public:
             mute.set_size_request(muteButtonWidth);
         }
 
-        loadImageWithSize(acceptIcon, "/call_start.svg", 64, 0, true);
+        loadButtonIconLarge(acceptIcon, "/call_start.svg");
         accept.set_image(acceptIcon);
-        styleButton(accept, acceptButtonColor);
+        styleButton(accept, acceptButtonColor, largePadding);
         accept.signal_clicked().connect([this]() { onAccept(callId); });
 
-        loadImageWithSize(cancelIcon, "/call_stop.svg", 64, 0, true);
+        loadButtonIconLarge(cancelIcon, "/call_stop.svg");
         cancel.set_image(cancelIcon);
-        styleButton(cancel, cancelButtonColor);
+        styleButton(cancel, cancelButtonColor, largePadding);
         cancel.signal_clicked().connect([this]() { onCancel(callId); });
 
-        loadImageWithSize(muteIcon, "/microphone.svg", 64, 0, true);
-        loadImageWithSize(unmuteIcon, "/microphone_off.svg", 64, 0, true);
+        loadButtonIconLarge(muteIcon, "/microphone.svg");
+        loadButtonIconLarge(unmuteIcon, "/microphone_off.svg");
         updateMuteButton();
         mute.signal_clicked().connect([this]() {
             muted = !muted;
@@ -53,6 +54,7 @@ public:
             onMute(callId, muted);
         });
 
+        setFont(label, largeFontSize, true);
         label.set_text(call.targetName);
 
         vbox.show_all();
@@ -70,10 +72,10 @@ public:
 private:
     void updateMuteButton() {
         if (muted) {
-            styleButton(mute, unmuteButtonColor);
+            styleButton(mute, unmuteButtonColor, largePadding);
             mute.set_image(unmuteIcon);
         } else {
-            styleButton(mute, muteButtonColor);
+            styleButton(mute, muteButtonColor, largePadding);
             mute.set_image(muteIcon);
         }
     }
@@ -99,7 +101,7 @@ CallScreen::CallScreen() {
     impl->box.show();
 }
 
-CallScreen::~CallScreen() {}
+CallScreen::~CallScreen() = default;
 
 Gtk::Widget& CallScreen::widget() {
     return impl->box;

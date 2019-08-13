@@ -2,27 +2,92 @@
 #include "discovery.h"
 #include "gstreamer/gstreamer.h"
 #include "settings.h"
+#include "system/beep.h"
+#include "system/gpio.h"
 #include "util/logging.h"
 
-#include "ui/call_screen.h"
-#include "ui/main_screen.h"
+#include "access_control/access_control.h"
+#include "access_control/actions/callback.h"
+#include "access_control/rfid_scanner.h"
+
 #include "ui/main_window.h"
+#include "ui/screens/action_screen.h"
+#include "ui/screens/call_screen.h"
+#include "ui/screens/key_screen.h"
+#include "ui/screens/main_screen.h"
+
+std::string const settingsFile = "settings.json";
+std::string const keyFile = "keys.json";
+
+std::string const rfidScannerCommand = "./scripts/read_rfid.py";
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
 
-    Settings self("settings.json");
+    initializeGpio();
+
+    Settings self(settingsFile);
     setLogLevel(self.logLevel());
 
     log()->info("Instance '{}'", self.name());
     log()->info("Machine ID '{}'", self.id().toString());
 
+    std::function<void()> openKeyScreen;
+
+    AccessControl accessControl;
+    accessControl.addAction(
+        std::make_unique<CallbackAction>("shutdown", "Shutdown Application", [&app]() { app->quit(); }));
+    accessControl.addAction(
+        std::make_unique<CallbackAction>("manage_keys", "Manage Keys", [&openKeyScreen]() { openKeyScreen(); }));
+    accessControl.addActionsFromJson(self.actions());
+    accessControl.loadKeyFile(keyFile);
+
     InstanceDiscovery discovery(self);
 
-    MainWindow mainWindow;
-    MainScreen mainScreen;
+    ActionScreen actionScreen;
     CallScreen callScreen;
+    KeyScreen keyScreen(&accessControl);
+    MainScreen mainScreen;
+
+    MainWindow mainWindow(mainScreen);
+
+    openKeyScreen = [&mainWindow, &keyScreen]() { mainWindow.pushScreen(keyScreen); };
+
+    if (accessControl.keys().empty()) {
+        ScreenButton manageKeysButton("", openKeyScreen);
+        manageKeysButton.icon = "/settings.svg";
+        mainWindow.addPermanentButton(manageKeysButton);
+    }
+
+#ifdef RASPBERRY_PI
+    RfidScanner rfidScanner(rfidScannerCommand);
+    rfidScanner.onKeyScanned.connect([&mainWindow, &accessControl, &mainScreen, &actionScreen](std::string scannedKey) {
+        Glib::signal_idle().connect([&, scannedKey = std::move(scannedKey)]() {
+            if (mainWindow.handleScannedKey(scannedKey)) {
+                return false;  // Disconnect the function.
+            }
+
+            beep();
+
+            for (auto const& key : accessControl.keys()) {
+                if (key.matches(scannedKey)) {
+                    log()->info("Scanned key '{}'", key.caption());
+
+                    if (key.actions().size() == 1) {
+                        key.actions()[0]->trigger();
+                    } else if (key.actions().size() > 1 && mainWindow.isCurrentScreen(mainScreen)) {
+                        actionScreen.updateActions(key.actions());
+                        mainWindow.pushScreen(actionScreen);
+                    }
+                    break;
+                }
+            }
+
+            return false;  // Disconnect the function.
+        });
+    });
+#endif
 
     discovery.onInstancesChanged([&mainScreen, &discovery](std::vector<Instance> const&) {
         // Update the buttons on the main screen for the new instances.
@@ -43,13 +108,13 @@ int main(int argc, char** argv) {
 
         if (activeCalls.empty() || !self.showCallScreen()) {
             if (mainWindow.isCurrentScreen(callScreen)) {
-                mainWindow.showScreen(mainScreen);
+                mainWindow.pushScreen(mainScreen);
             }
             return;
         }
 
         callScreen.updateCalls(activeCalls);
-        mainWindow.showScreen(callScreen);
+        mainWindow.pushScreen(callScreen);
 
         return;
     };
@@ -65,6 +130,10 @@ int main(int argc, char** argv) {
     callScreen.onCancel.connect([&calls](UUID const& id) { calls.cancelCall(id); });
     callScreen.onMute.connect([&calls](UUID const& id, bool mute) { calls.muteCall(id, mute); });
 
-    mainWindow.showScreen(mainScreen);
-    return app->run(mainWindow);
+    mainWindow.pushScreen(mainScreen);
+    int result = app->run(mainWindow);
+
+    finalizeGpio();
+
+    return result;
 }

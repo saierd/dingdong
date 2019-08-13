@@ -10,3 +10,6 @@
 [submodule "3rdparty/material-design-icons"]
 	path = 3rdparty/material-design-icons
 	url = https://github.com/google/material-design-icons.git
+[submodule "3rdparty/pigpio"]
+	path = 3rdparty/pigpio
+	url = https://github.com/joan2937/pigpio.git

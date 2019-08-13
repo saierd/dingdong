@@ -6,7 +6,7 @@
 #include <gtkmm/button.h>
 
 #include "instance.h"
-#include "screen.h"
+#include "ui/screen.h"
 
 class MainScreen : public Screen {
 public:
@@ -21,5 +21,5 @@ private:
     std::vector<Instance> instances;
 
     Gtk::Box buttonBox;
-    std::vector<Gtk::Button> buttons;
+    std::vector<Gtk::Button> instanceButtons;
 };
