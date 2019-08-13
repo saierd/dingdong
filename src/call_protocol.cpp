@@ -43,6 +43,7 @@ public:
             int senderPort = data["port"];
 
             bool foundInstance = false;
+            std::optional<int> receiverPort;
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 logger->info("Call request from {}, call id {}", machine.toString(), id.toString());
@@ -58,7 +59,11 @@ public:
                         result["id"] = newCall.id().toString();
                         result["port"] = newCall.receiverPort();
                         response.set_content(result.dump(), jsonContentType);
+
+                        receiverPort = newCall.receiverPort();
                         foundInstance = true;
+
+                        break;
                     }
                 }
             }
@@ -71,7 +76,7 @@ public:
             }
 
             if (self.autoAccept()) {
-                protocol->acceptCall(id);
+                protocol->acceptCall(id, receiverPort);
             }
         });
         httpServer.Post("/call/accept", [this](httplib::Request const& request, httplib::Response& response) {
@@ -87,6 +92,13 @@ public:
                     logger->error("Could not find call {}", id.toString());
                     response.status = 500;
                     return;
+                }
+
+                // Optionally connect the accepted call if the accept API call was given a port. This is to allow auto
+                // accepting calls while the request on the calling side was not completed yet.
+                if (data.count("port")) {
+                    int port = data["port"].get<int>();
+                    call->connect(port);
                 }
 
                 call->start();
@@ -423,7 +435,7 @@ void CallProtocol::requestCall(Instance const& target) {
     onCallsChanged();
 }
 
-void CallProtocol::acceptCall(UUID const& id) {
+void CallProtocol::acceptCall(UUID const& id, std::optional<int> senderPort) {
     impl->logger->debug("Accept call {}", id.toString());
 
     bool success = true;
@@ -439,6 +451,9 @@ void CallProtocol::acceptCall(UUID const& id) {
     if (callTarget) {
         json data;
         data["id"] = id.toString();
+        if (senderPort) {
+            data["port"] = *senderPort;
+        }
 
         auto request = clientForTarget(*callTarget);
         auto response = request.Post("/call/accept", data.dump(), jsonContentType);

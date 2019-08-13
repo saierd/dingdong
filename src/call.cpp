@@ -117,6 +117,7 @@ public:
     bool invalid = false;
 
     std::unique_ptr<AudioSender> sender;
+    int senderPort = -1;
 
     PortManager::Handle receiverPort;
     std::unique_ptr<AudioReceiver> receiver;
@@ -163,8 +164,11 @@ int Call::receiverPort() const {
 }
 
 void Call::connect(int senderPort) {
+    if (impl->sender && senderPort == impl->senderPort) return;
+
     impl->logger->info("Connecting audio sender to {}:{}", impl->target.ipAddress().toString(), senderPort);
     impl->sender = std::make_unique<AudioSender>(impl->target.ipAddress(), senderPort, impl->audioSourceDevice);
+    impl->senderPort = senderPort;
 }
 
 void Call::start() {

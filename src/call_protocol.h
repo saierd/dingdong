@@ -1,5 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "glibmm.h"
 
 #include "discovery.h"
@@ -22,7 +27,7 @@ public:
     void requestCall(Instance const& target);
 
     // Accept an incoming call.
-    void acceptCall(UUID const& id);
+    void acceptCall(UUID const& id, std::optional<int> receiverPort = std::nullopt);
     // Reject an incoming call or stop any active call with the given id.
     void cancelCall(UUID const& id);
 
