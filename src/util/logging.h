@@ -17,3 +17,5 @@ inline Logger copyLoggerWithName(Logger const& logger, std::string const& name) 
 inline Logger categoryLogger(std::string const& name) {
     return copyLoggerWithName(log(), name);
 }
+
+void setLogLevel(std::string const& level);

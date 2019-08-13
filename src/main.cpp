@@ -13,8 +13,10 @@ int main(int argc, char** argv) {
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
 
     Settings self("settings.json");
-    log()->info("Instance {}", self.name());
-    log()->info("Machine ID {}", self.id().toString());
+    setLogLevel(self.logLevel());
+
+    log()->info("Instance '{}'", self.name());
+    log()->info("Machine ID '{}'", self.id().toString());
 
     InstanceDiscovery discovery(self);
 

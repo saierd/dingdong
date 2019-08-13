@@ -11,15 +11,12 @@
 #include "util/logging.h"
 
 int const discoveryPort = 40001;
-#ifdef NDEBUG
-std::chrono::seconds const discoverySendInterval(10);
-#else
-std::chrono::seconds const discoverySendInterval(2);
-#endif
+
 int const discoveryNameSize = 50;
 
-std::chrono::seconds const discoveryCleanupInterval(30);
-std::chrono::seconds const discoveryTimeout(30);
+std::chrono::seconds const discoverySendInterval(2);
+std::chrono::seconds const discoveryCleanupInterval(10);
+std::chrono::seconds const discoveryTimeout(10);
 
 std::string const discoveryLogCategory = "discovery";
 

@@ -3,6 +3,6 @@
     "showCallScreen": true,
     "autoAccept": false,
     "audioSourceDevice": "",
-    "ringtone": ""
+    "ringtone": "",
+    "logLevel": "off"
 }
-

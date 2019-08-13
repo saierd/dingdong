@@ -24,9 +24,15 @@ public:
         return _ringtone;
     }
 
+    std::string logLevel() const {
+        return _logLevel;
+    }
+
 private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
     std::string _audioSourceDevice;
     std::string _ringtone;
+
+    std::string _logLevel;
 };

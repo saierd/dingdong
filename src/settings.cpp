@@ -26,5 +26,7 @@ Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown
         }
         getValueFromJson(_audioSourceDevice, data, "audioSourceDevice");
         getValueFromJson(_ringtone, data, "ringtone");
+
+        getValueFromJson(_logLevel, data, "logLevel");
     }
 }
