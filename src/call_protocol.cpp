@@ -176,7 +176,7 @@ public:
     }
 
     Call& createIncomingCall(UUID const& id, Instance const& instance) {
-        incomingCalls.emplace_back(self, id, instance);
+        incomingCalls.emplace_back(id, instance);
 
         auto& newCall = incomingCalls.back();
         callLastActivity[newCall.id().toString()] = std::chrono::steady_clock::now();
@@ -186,7 +186,7 @@ public:
     }
 
     Call& createOutgoingCall(Instance const& target) {
-        outgoingCalls.emplace_back(self, target);
+        outgoingCalls.emplace_back(target);
 
         auto& newCall = outgoingCalls.back();
         logger->debug("Created call with id {}", newCall.id().toString());

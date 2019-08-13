@@ -16,10 +16,6 @@ public:
         return _autoAccept;
     }
 
-    std::string audioSourceDevice() const {
-        return _audioSourceDevice;
-    }
-
     std::string ringtone() const {
         return _ringtone;
     }
@@ -31,7 +27,6 @@ public:
 private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
-    std::string _audioSourceDevice;
     std::string _ringtone;
 
     std::string _logLevel;
