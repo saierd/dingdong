@@ -30,12 +30,12 @@ bool AudioSender::isRunning() const {
 AudioReceiver::AudioReceiver(int sourcePort) {
     std::string pipelineSpecification = fmt::format(
         "udpsrc port={} caps=\"application/x-rtp\" ! "
-        "rtpjitterbuffer latency=100 ! "
+        "rtpjitterbuffer latency=100 drop-on-latency=true ! "
         "rtppcmudepay ! "
         "mulawdec ! "
         "audioconvert ! "
         "audioresample ! "
-        "pulsesink sync=false",
+        "pulsesink buffer-time=100000 sync=false",
         sourcePort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
