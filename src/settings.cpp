@@ -2,12 +2,10 @@
 
 #include <fstream>
 
-#include "nlohmann/json.hpp"
-
-using json = nlohmann::json;
+#include "util/json.h"
 
 template<typename T>
-void getValueFromJson(T& variable, json const& data, std::string const& key) {
+void getValueFromJson(T& variable, Json const& data, std::string const& key) {
     if (data.count(key) > 0) {
         variable = data[key];
     }
@@ -16,7 +14,7 @@ void getValueFromJson(T& variable, json const& data, std::string const& key) {
 Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown Instance") {
     std::ifstream file(settingsFile);
     if (file) {
-        auto data = json::parse(file);
+        auto data = Json::parse(file);
 
         getValueFromJson(_name, data, "instanceName");
         getValueFromJson(_showCallScreen, data, "showCallScreen");

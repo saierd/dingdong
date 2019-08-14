@@ -51,6 +51,7 @@ set(HEADERS
     src/ui/main_screen.h
     src/ui/main_window.h
     src/ui/screen.h
+    src/util/json.h
     src/util/logging.h)
 
 set(SOURCES
@@ -72,7 +73,6 @@ set(SOURCES
     src/ui/call_screen.cpp
     src/ui/main_screen.cpp
     src/ui/main_window.cpp
-    src/ui/screen.cpp
     src/util/logging.cpp)
 
 set(CONFIG_FILES

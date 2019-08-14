@@ -8,12 +8,10 @@
 #include <vector>
 
 #include "httplib.h"
-#include "nlohmann/json.hpp"
-
-using json = nlohmann::json;
 
 #include "audio_player.h"
 #include "call.h"
+#include "util/json.h"
 #include "util/logging.h"
 
 std::string const protocolLoggingCategory = "http";
@@ -37,7 +35,7 @@ public:
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
-            auto data = json::parse(request.body);
+            auto data = Json::parse(request.body);
             UUID id(data["id"].get<std::string>());
             MachineId machine(data["machine"].get<std::string>());
             int senderPort = data["port"];
@@ -55,7 +53,7 @@ public:
                         auto& newCall = createIncomingCall(id, instance);
                         newCall.connect(senderPort);
 
-                        json result;
+                        Json result;
                         result["id"] = newCall.id().toString();
                         result["port"] = newCall.receiverPort();
                         response.set_content(result.dump(), jsonContentType);
@@ -80,7 +78,7 @@ public:
             }
         });
         httpServer.Post("/call/accept", [this](httplib::Request const& request, httplib::Response& response) {
-            auto data = json::parse(request.body);
+            auto data = Json::parse(request.body);
             UUID id(data["id"].get<std::string>());
 
             {
@@ -97,7 +95,7 @@ public:
                 // Optionally connect the accepted call if the accept API call was given a port. This is to allow auto
                 // accepting calls while the request on the calling side was not completed yet.
                 if (data.count("port")) {
-                    int port = data["port"].get<int>();
+                    int port = data["port"];
                     call->connect(port);
                 }
 
@@ -106,12 +104,12 @@ public:
 
             protocol->onCallsChanged();
 
-            json result;
+            Json result;
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
         httpServer.Post("/call/cancel", [this](httplib::Request const& request, httplib::Response& response) {
-            auto data = json::parse(request.body);
+            auto data = Json::parse(request.body);
             UUID id(data["id"].get<std::string>());
 
             logger->info("Received cancel request for {}", id.toString());
@@ -123,12 +121,12 @@ public:
 
             protocol->onCallsChanged();
 
-            json result;
+            Json result;
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
         httpServer.Post("/call/ping", [this](httplib::Request const& request, httplib::Response& response) {
-            auto data = json::parse(request.body);
+            auto data = Json::parse(request.body);
             UUID id(data["id"].get<std::string>());
 
             {
@@ -137,7 +135,7 @@ public:
                 callLastActivity[id.toString()] = std::chrono::steady_clock::now();
             }
 
-            json result;
+            Json result;
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
@@ -147,7 +145,7 @@ public:
                 playRingtone();
             }
 
-            json result;
+            Json result;
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
@@ -217,7 +215,7 @@ public:
     void cancelCall(UUID id, bool needLock = true) {
         Instance callTarget(getMachineId(), "");
         if (invalidateCall(id, &callTarget, needLock)) {
-            json data;
+            Json data;
             data["id"] = id.toString();
 
             auto request = clientForTarget(callTarget);
@@ -276,7 +274,7 @@ public:
         }
 
         for (auto const& call : callsToPing) {
-            json data;
+            Json data;
             data["id"] = call.second.toString();
 
             auto request = clientForTarget(call.first);
@@ -402,7 +400,7 @@ void CallProtocol::requestCall(Instance const& target) {
         return;
     }
 
-    json data;
+    Json data;
     UUID newCallId;
     {
         std::lock_guard<std::mutex> lock(impl->mutex);
@@ -422,7 +420,7 @@ void CallProtocol::requestCall(Instance const& target) {
     }
 
     impl->logger->trace("Response {}: {}", response->status, response->body);
-    data = json::parse(response->body);
+    data = Json::parse(response->body);
 
     {
         std::lock_guard<std::mutex> lock(impl->mutex);
@@ -449,7 +447,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> senderPort) {
     }
 
     if (callTarget) {
-        json data;
+        Json data;
         data["id"] = id.toString();
         if (senderPort) {
             data["port"] = *senderPort;

@@ -4,7 +4,7 @@
 
 class Screen {
 public:
-    virtual ~Screen() {}
+    virtual ~Screen() = default;
 
     virtual Gtk::Widget& widget() = 0;
 };
