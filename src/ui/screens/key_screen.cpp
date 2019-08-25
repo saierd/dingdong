@@ -3,6 +3,7 @@
 #include <optional>
 
 #include <gtkmm/box.h>
+#include <gtkmm/button.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
@@ -14,6 +15,9 @@
 #include "ui/constants.h"
 #include "ui/gtk_helpers.h"
 #include "ui/main_window.h"
+
+#include "ui/screens/key_input_screen.h"
+#include "util/logging.h"
 
 int const keyListMinWidth = 250;
 
@@ -32,7 +36,10 @@ public:
 
 class KeyScreen::Impl {
 public:
-    Impl(AccessControl* _accessControl) : accessControl(_accessControl), keyList(2) {
+    Impl(KeyScreen* _screen, AccessControl* _accessControl)
+        : screen(_screen), accessControl(_accessControl), keyList(2) {
+        keyInputScreen.onKeyInput.connect([this](std::string key) { createNewKey(key); });
+
         keyList.signal_row_activated().connect([this](auto...) { updateKeyFormFromListSelection(); });
         keyList.set_activate_on_single_click(true);
         keyList.set_headers_visible(false);
@@ -196,11 +203,28 @@ public:
     }
 
     void createNewKey() {
-        // TODO: Let the user input a key.
-        createNewKey("123");
+        // Push the screen to allow inputting a new key. When the new key gets confirmed, the emitted signal will create
+        // a new key in this screen.
+        screen->mainWindow->pushScreen(keyInputScreen);
     }
 
     void createNewKey(std::string const& key) {
+        // Make sure that the new key is not the same as an existing one and not a prefix of any existing key. This
+        // would lead to ambiguous situations while scanning or inserting keys.
+        // Note that it is still possible to add keys which are a prefix of an existing key. This cannot be avoided,
+        // because we do not know the prefixes of existing keys. However, this case only hides the old key and never
+        // reveals it to other users.
+        for (int prefixLength = 1; prefixLength <= static_cast<int>(key.size()); prefixLength++) {
+            std::string prefix = key.substr(0, prefixLength);
+
+            for (auto const& existingKey : accessControl->keys()) {
+                if (existingKey.matches(prefix)) {
+                    log()->error("Aborting key creation, because key would be ambiguous!");
+                    return;
+                }
+            }
+        }
+
         Key newKey("", key);
 
         accessControl->insertOrReplaceKey(newKey);
@@ -231,6 +255,8 @@ public:
     }
 
 public:
+    KeyScreen* screen;
+
     AccessControl* accessControl;
     std::optional<Key> currentKey;
     bool updatingKeyForm = false;
@@ -256,10 +282,12 @@ public:
     Glib::RefPtr<Gtk::ListStore> actionListModel;
     ActionListColumns actionListColumns;
     Gtk::TreeView actionList;
+
+    KeyInputScreen keyInputScreen = KeyInputScreen(true);
 };
 
 KeyScreen::KeyScreen(AccessControl* accessControl) {
-    impl = std::make_unique<Impl>(accessControl);
+    impl = std::make_unique<Impl>(this, accessControl);
 }
 
 KeyScreen::~KeyScreen() = default;

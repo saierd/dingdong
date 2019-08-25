@@ -63,6 +63,7 @@ set(HEADERS
     src/ui/screens/action_screen.h
     src/ui/screens/call_screen.h
     src/ui/screens/key_screen.h
+    src/ui/screens/key_input_screen.h
     src/ui/screens/main_screen.h
     src/util/json.h
     src/util/logging.h)
@@ -95,6 +96,7 @@ set(SOURCES
     src/ui/screens/action_screen.cpp
     src/ui/screens/call_screen.cpp
     src/ui/screens/key_screen.cpp
+    src/ui/screens/key_input_screen.cpp
     src/ui/screens/main_screen.cpp
     src/util/logging.cpp)
 

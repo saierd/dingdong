@@ -32,6 +32,10 @@ public:
         return {};
     }
 
+    virtual void onShow(){
+        // This method gets called once when the screen gets changed.
+    };
+
     virtual bool handleScannedKey(std::string const&) {
         return false;
     }

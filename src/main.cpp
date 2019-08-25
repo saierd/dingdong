@@ -13,6 +13,7 @@
 #include "ui/main_window.h"
 #include "ui/screens/action_screen.h"
 #include "ui/screens/call_screen.h"
+#include "ui/screens/key_input_screen.h"
 #include "ui/screens/key_screen.h"
 #include "ui/screens/main_screen.h"
 
@@ -20,6 +21,8 @@ std::string const settingsFile = "settings.json";
 std::string const keyFile = "keys.json";
 
 std::string const rfidScannerCommand = "./scripts/read_rfid.py";
+
+std::string const manageKeysAction = "manage_keys";
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
@@ -39,7 +42,7 @@ int main(int argc, char** argv) {
     accessControl.addAction(
         std::make_unique<CallbackAction>("shutdown", "Shutdown Application", [&app]() { app->quit(); }));
     accessControl.addAction(
-        std::make_unique<CallbackAction>("manage_keys", "Manage Keys", [&openKeyScreen]() { openKeyScreen(); }));
+        std::make_unique<CallbackAction>(manageKeysAction, "Manage Keys", [&openKeyScreen]() { openKeyScreen(); }));
     accessControl.addActionsFromJson(self.actions());
     accessControl.loadKeyFile(keyFile);
 
@@ -48,17 +51,56 @@ int main(int argc, char** argv) {
     ActionScreen actionScreen;
     CallScreen callScreen;
     KeyScreen keyScreen(&accessControl);
+    KeyInputScreen keyInputScreen(false);
     MainScreen mainScreen;
 
     MainWindow mainWindow(mainScreen);
 
     openKeyScreen = [&mainWindow, &keyScreen]() { mainWindow.pushScreen(keyScreen); };
 
-    if (accessControl.keys().empty()) {
-        ScreenButton manageKeysButton("", openKeyScreen);
-        manageKeysButton.icon = "/settings.svg";
-        mainWindow.addPermanentButton(manageKeysButton);
-    }
+    // On first launch, show a button for accessing the key settings to allow setting up an administration key.
+    ScreenButton manageKeysButton("", openKeyScreen);
+    manageKeysButton.icon = "/settings.svg";
+    mainWindow.addPermanentButton(manageKeysButton, [&accessControl]() {
+        // Hide the button when there is already a key which can manage keys.
+        bool hasAdminKey = false;
+        for (auto const& key : accessControl.keys()) {
+            for (auto const& action : key.actions()) {
+                if (action->id() == manageKeysAction) {
+                    hasAdminKey = true;
+                    break;
+                }
+            }
+        }
+
+        return !hasAdminKey;
+    });
+
+    ScreenButton inputKeyButton("", [&mainWindow, &keyInputScreen]() { mainWindow.pushScreen(keyInputScreen); });
+    inputKeyButton.icon = "/key.svg";
+    mainWindow.addPermanentButton(inputKeyButton, [&mainWindow, &mainScreen]() {
+        // Allow on main screen only.
+        return mainWindow.isCurrentScreen(mainScreen);
+    });
+
+    keyInputScreen.onKeyInput.connect([&accessControl, &mainWindow, &actionScreen](std::string inputKey) {
+        for (auto const& key : accessControl.keys()) {
+            if (key.matches(inputKey)) {
+                // Pop the key input screen.
+                mainWindow.popScreen();
+
+                log()->info("Key input '{}'", key.caption());
+
+                if (key.actions().size() == 1) {
+                    key.actions()[0]->trigger();
+                } else if (key.actions().size() > 1) {
+                    actionScreen.updateActions(key.actions());
+                    mainWindow.pushScreen(actionScreen);
+                }
+                break;
+            }
+        }
+    });
 
 #ifdef RASPBERRY_PI
     RfidScanner rfidScanner(rfidScannerCommand);

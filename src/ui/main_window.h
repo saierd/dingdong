@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include <gtkmm/box.h>
@@ -13,6 +14,7 @@ class MainWindow : public Gtk::Window {
 public:
     MainWindow(Screen& baseScreen);
 
+    void addPermanentButton(ScreenButton button, std::function<bool()> show);
     void addPermanentButton(ScreenButton button);
     void clearPermanentButtons();
 
@@ -34,7 +36,12 @@ private:
     // Connection to signals of the current screen.
     sigc::connection currentScreenConnection;
 
-    std::vector<ScreenButton> permanentButtons;
+    struct PermanentButton {
+        ScreenButton button;
+        std::function<bool()> show;
+    };
+
+    std::vector<PermanentButton> permanentButtons;
 
     Gtk::Box vbox;
     Gtk::Box footerBox;

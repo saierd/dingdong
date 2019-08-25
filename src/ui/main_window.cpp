@@ -16,7 +16,7 @@ MainWindow::MainWindow(Screen& baseScreen) {
     setFont(*this, applicationFontSize);
 
     vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    vbox.set_spacing(2 * mainWindowPadding);
+    vbox.set_spacing(mainWindowPadding);
     vbox.pack_end(footerBox, Gtk::PACK_SHRINK);
 
     logo.set_from_resource("/logo.png");
@@ -34,9 +34,13 @@ MainWindow::MainWindow(Screen& baseScreen) {
     pushScreen(baseScreen);
 }
 
-void MainWindow::addPermanentButton(ScreenButton button) {
-    permanentButtons.push_back(button);
+void MainWindow::addPermanentButton(ScreenButton button, std::function<bool()> show) {
+    permanentButtons.push_back({ std::move(button), std::move(show) });
     updateButtons();
+}
+
+void MainWindow::addPermanentButton(ScreenButton button) {
+    addPermanentButton(std::move(button), []() { return true; });
 }
 
 void MainWindow::clearPermanentButtons() {
@@ -76,6 +80,8 @@ void MainWindow::showScreen(Screen* screen) {
     vbox.pack_start(screen->widget());
     currentScreen = screen;
     screen->mainWindow = this;
+    screen->onShow();
+
     currentScreenConnection = currentScreen->onButtonsChanged.connect([this]() { updateButtons(); });
     updateButtons();
 }
@@ -106,7 +112,9 @@ void MainWindow::updateButtons() {
         }
     }
     for (auto const& button : permanentButtons) {
-        addButton(button);
+        if (button.show()) {
+            addButton(button.button);
+        }
     }
     footerBox.show_all();
 }
