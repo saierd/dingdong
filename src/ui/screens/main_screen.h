@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/grid.h>
 
 #include "instance.h"
 #include "ui/screen.h"
@@ -20,6 +20,6 @@ public:
 private:
     std::vector<Instance> instances;
 
-    Gtk::Box buttonBox;
+    Gtk::Grid buttonGrid;
     std::vector<Gtk::Button> instanceButtons;
 };

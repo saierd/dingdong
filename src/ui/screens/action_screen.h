@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/grid.h>
 
 #include "access_control/action.h"
 #include "ui/screen.h"
@@ -19,6 +19,6 @@ public:
     void updateActions(std::vector<std::shared_ptr<Action>> const& actions);
 
 private:
-    Gtk::Box buttonBox;
+    Gtk::Grid buttonGrid;
     std::vector<Gtk::Button> actionButtons;
 };

@@ -69,7 +69,7 @@ public:
         leftVBox.pack_start(keyListScrollView, true, true);
         leftVBox.pack_end(buttonBox, false, false);
 
-        captionLabel.set_text("Caption:");
+        captionLabel.set_text("Name:");
         captionLabel.set_alignment(Gtk::ALIGN_START);
         captionEntry.signal_changed().connect([this]() { captionChanged(); });
         resetFont(captionEntry);

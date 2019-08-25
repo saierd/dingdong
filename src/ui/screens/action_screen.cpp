@@ -4,13 +4,16 @@
 #include "ui/gtk_helpers.h"
 #include "ui/main_window.h"
 
+int const actionsPerColumn = 3;
+
 ActionScreen::ActionScreen() {
-    buttonBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    buttonBox.set_spacing(defaultSpacing);
+    buttonGrid.set_column_homogeneous(true);
+    buttonGrid.set_row_spacing(defaultSpacing);
+    buttonGrid.set_column_spacing(defaultSpacing);
 }
 
 Gtk::Widget& ActionScreen::widget() {
-    return buttonBox;
+    return buttonGrid;
 }
 
 std::vector<ScreenButton> ActionScreen::buttons() {
@@ -22,10 +25,13 @@ std::vector<ScreenButton> ActionScreen::buttons() {
 
 void ActionScreen::updateActions(std::vector<std::shared_ptr<Action>> const& actions) {
     actionButtons.clear();
+
+    int row = 0;
+    int column = 0;
     for (auto const& action : actions) {
         actionButtons.emplace_back(action->caption());
-        styleButton(actionButtons.back(), largePadding);
-        setFont(actionButtons.back(), largeFontSize, true);
+        styleButton(actionButtons.back(), mediumPadding);
+        setFont(actionButtons.back(), mediumFontSize, true);
 
         actionButtons.back().signal_clicked().connect([action, this]() {
             // Pop the action screen.
@@ -33,7 +39,14 @@ void ActionScreen::updateActions(std::vector<std::shared_ptr<Action>> const& act
 
             action->trigger();
         });
-        buttonBox.pack_start(actionButtons.back(), Gtk::PACK_SHRINK);
+        buttonGrid.attach(actionButtons.back(), column, row, 1, 1);
+
+        row++;
+        if (row >= actionsPerColumn) {
+            column++;
+            row = 0;
+        }
     }
-    buttonBox.show_all();
+
+    buttonGrid.show_all();
 }
