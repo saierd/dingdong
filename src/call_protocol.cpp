@@ -30,8 +30,8 @@ httplib::Client clientForTarget(Instance const& target) {
 
 class CallProtocol::Impl {
 public:
-    Impl(CallProtocol* _protocol, Settings const& _self, InstanceDiscovery const& _instances)
-        : protocol(_protocol), self(_self), instances(_instances) {
+    Impl(CallProtocol* _protocol, Settings _self, InstanceDiscovery const& _instances)
+        : protocol(_protocol), self(std::move(_self)), instances(_instances) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -139,7 +139,7 @@ public:
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
-        httpServer.Get("/ring", [this](httplib::Request const&, httplib::Response& response) {
+        httpServer.Get("/ring", [this](httplib::Request const& /*unused*/, httplib::Response& response) {
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 playRingtone();
@@ -378,7 +378,7 @@ CallProtocol::CallProtocol(Settings const& self, InstanceDiscovery const& instan
     impl = std::make_unique<Impl>(this, self, instances);
 }
 
-CallProtocol::~CallProtocol() {}
+CallProtocol::~CallProtocol() = default;
 
 void CallProtocol::requestCall(Instance const& target) {
     impl->logger->debug("Request call to {}", target.id().toString());
@@ -433,7 +433,7 @@ void CallProtocol::requestCall(Instance const& target) {
     onCallsChanged();
 }
 
-void CallProtocol::acceptCall(UUID const& id, std::optional<int> senderPort) {
+void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort) {
     impl->logger->debug("Accept call {}", id.toString());
 
     bool success = true;
@@ -449,8 +449,8 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> senderPort) {
     if (callTarget) {
         Json data;
         data["id"] = id.toString();
-        if (senderPort) {
-            data["port"] = *senderPort;
+        if (receiverPort) {
+            data["port"] = *receiverPort;
         }
 
         auto request = clientForTarget(*callTarget);

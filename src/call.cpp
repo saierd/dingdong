@@ -25,14 +25,11 @@ public:
         Handle(Handle const& other) = delete;
         Handle& operator=(Handle const& other) = delete;
 
-        Handle(Handle&& other) {
-            returnPort();
-            manager = other.manager;
-            port = other.port;
-            other.invalidate();
+        Handle(Handle&& other) noexcept {
+            *this = std::move(other);
         }
 
-        Handle& operator=(Handle&& other) {
+        Handle& operator=(Handle&& other) noexcept {
             returnPort();
             manager = other.manager;
             port = other.port;
@@ -105,7 +102,7 @@ std::string const callLogCategory = "call";
 
 class Call::Impl {
 public:
-    Impl(Instance const& _target) : target(_target) {
+    Impl(Instance _target) : target(std::move(_target)) {
         logger = categoryLogger(callLogCategory);
     }
 
@@ -139,13 +136,13 @@ Call::Call(UUID const& id, Instance const& target) : Call(target) {
     impl->id = id;
 }
 
-Call::~Call() {}  // Stops automatically in the destructor of the streams.
+Call::~Call() = default;  // Stops automatically in the destructor of the streams.
 
-Call::Call(Call&& other) {
+Call::Call(Call&& other) noexcept {
     impl = std::move(other.impl);
 }
 
-Call& Call::operator=(Call&& other) {
+Call& Call::operator=(Call&& other) noexcept {
     impl = std::move(other.impl);
     return *this;
 }

@@ -36,7 +36,7 @@ public:
         // This method gets called once when the screen gets changed.
     };
 
-    virtual bool handleScannedKey(std::string const&) {
+    virtual bool handleScannedKey(std::string const& /*unused*/) {
         return false;
     }
 

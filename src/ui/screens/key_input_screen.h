@@ -10,7 +10,7 @@
 class KeyInputScreen : public Screen {
 public:
     KeyInputScreen(bool needConfirmation);
-    ~KeyInputScreen();
+    ~KeyInputScreen() override;
 
     Gtk::Widget& widget() override;
     std::vector<ScreenButton> buttons() override;

@@ -16,8 +16,8 @@ public:
 
     Call(Call const&) = delete;
     Call& operator=(Call const&) = delete;
-    Call(Call&& other);
-    Call& operator=(Call&& other);
+    Call(Call&& other) noexcept;
+    Call& operator=(Call&& other) noexcept;
 
     UUID id() const;
     Instance target() const;

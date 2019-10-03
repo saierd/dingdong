@@ -1,5 +1,7 @@
 #include "external_process.h"
 
+#include <array>
+
 int const bufferSize = 1024;
 
 ExternalProcess::ExternalProcess(std::string command) {
@@ -17,15 +19,15 @@ ExternalProcess::~ExternalProcess() {
 
 bool ExternalProcess::isRunning() const {
     if (!stream) return false;
-    return !std::feof(stream);
+    return std::feof(stream) != 0;
 }
 
 std::string ExternalProcess::readLine() const {
-    char buffer[bufferSize];
+    std::array<char, bufferSize> buffer;
 
     std::string line;
-    while (std::fgets(buffer, bufferSize, stream) != nullptr) {
-        line += std::string(buffer);
+    while (std::fgets(buffer.data(), bufferSize, stream) != nullptr) {
+        line += std::string(buffer.data());
         if (!line.empty() && line.back() == '\n') {
             line.pop_back();
             break;

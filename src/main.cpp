@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
         return mainWindow.isCurrentScreen(mainScreen);
     });
 
-    keyInputScreen.onKeyInput.connect([&accessControl, &mainWindow, &actionScreen](std::string inputKey) {
+    keyInputScreen.onKeyInput.connect([&accessControl, &mainWindow, &actionScreen](std::string const& inputKey) {
         for (auto const& key : accessControl.keys()) {
             if (key.matches(inputKey)) {
                 // Pop the key input screen.
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
     });
 #endif
 
-    discovery.onInstancesChanged([&mainScreen, &discovery](std::vector<Instance> const&) {
+    discovery.onInstancesChanged([&mainScreen, &discovery]() {
         // Update the buttons on the main screen for the new instances.
         Glib::signal_idle().connect([&]() {
             mainScreen.updateInstances(discovery.instances());
@@ -157,8 +157,6 @@ int main(int argc, char** argv) {
 
         callScreen.updateCalls(activeCalls);
         mainWindow.pushScreen(callScreen);
-
-        return;
     };
 
     calls.onCallsChanged.connect([&updateCallScreen]() {

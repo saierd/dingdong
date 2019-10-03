@@ -17,8 +17,8 @@ public:
 
     UdpSocket(UdpSocket const&) = delete;
     UdpSocket& operator=(UdpSocket const&) = delete;
-    UdpSocket(UdpSocket&& other);
-    UdpSocket& operator=(UdpSocket&& other);
+    UdpSocket(UdpSocket&& other) noexcept;
+    UdpSocket& operator=(UdpSocket&& other) noexcept;
 
     void bind(int port = 0);
     void allowBroadcasts();

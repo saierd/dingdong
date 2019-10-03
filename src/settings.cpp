@@ -9,7 +9,7 @@ void getValueFromJson(T& variable, Json const& data, std::string const& key) {
     }
 }
 
-Settings::Settings(std::string settingsFile) : Instance(getMachineId(), "Unknown Instance") {
+Settings::Settings(std::string const& settingsFile) : Instance(getMachineId(), "Unknown Instance") {
     std::ifstream file(settingsFile);
     if (file) {
         auto data = Json::parse(file);

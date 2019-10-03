@@ -7,9 +7,9 @@
 
 class NetworkInterface {
 public:
-    NetworkInterface(std::string const& name, IpAddress const& address, IpAddress const& netmask,
+    NetworkInterface(std::string name, IpAddress const& address, IpAddress const& netmask,
                      IpAddress const& broadcastAddress)
-        : _name(name), _address(address), _netmask(netmask), _broadcastAddress(broadcastAddress) {}
+        : _name(std::move(name)), _address(address), _netmask(netmask), _broadcastAddress(broadcastAddress) {}
 
 public:
     std::string name() const {

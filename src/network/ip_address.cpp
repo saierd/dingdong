@@ -1,5 +1,7 @@
 #include "ip_address.h"
 
+#include <array>
+
 #include <arpa/inet.h>
 
 IpAddress::IpAddress(std::string const& addressString) {
@@ -19,11 +21,11 @@ IpAddress::IpAddress(struct sockaddr const* addr) {
 }
 
 std::string IpAddress::toString() const {
-    char buffer[INET_ADDRSTRLEN];
+    std::array<char, INET_ADDRSTRLEN> buffer;
 
     in_addr addr;
     addr.s_addr = htonl(address);
-    inet_ntop(AF_INET, &addr, buffer, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &addr, buffer.data(), INET_ADDRSTRLEN);
 
-    return std::string(buffer);
+    return std::string(buffer.data());
 }

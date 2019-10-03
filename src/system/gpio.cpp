@@ -33,16 +33,18 @@ void finalizeGpio() {
 #endif
 }
 
-GpioOutputPin::GpioOutputPin(unsigned int pin) : _pin(pin) {
 #ifdef RASPBERRY_PI
+GpioOutputPin::GpioOutputPin(unsigned int pin) : _pin(pin) {
     set_mode(pigpioHandle, _pin, PI_OUTPUT);
-#endif
 }
+#else
+GpioOutputPin::GpioOutputPin(unsigned int /*unused*/) {}
+#endif
 
 #ifdef RASPBERRY_PI
 void GpioOutputPin::set(bool high) {
     gpio_write(pigpioHandle, _pin, high ? 1 : 0);
 }
 #else
-void GpioOutputPin::set(bool) {}
+void GpioOutputPin::set(bool /*unused*/) {}
 #endif

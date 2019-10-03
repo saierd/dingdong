@@ -1,5 +1,7 @@
 #include "key.h"
 
+#include <array>
+
 #include <openssl/md5.h>
 
 #include "system/uuid.h"
@@ -8,7 +10,9 @@ std::string hexDump(uint8_t const* data, int size) {
     std::string result;
     result.reserve(2 * size);
 
-    const char hexCharacters[] = "0123456789abcdef";
+    std::array<char, 16> hexCharacters{
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+    };
     for (int i = 0; i < size; i++) {
         uint8_t byte = data[i];
         result += hexCharacters[byte >> 4];
@@ -20,10 +24,10 @@ std::string hexDump(uint8_t const* data, int size) {
 
 // Compute a hex dump of the MD5 hash of the given data.
 std::string md5Hash(std::string const& data) {
-    uint8_t hash[MD5_DIGEST_LENGTH];
-    MD5(reinterpret_cast<unsigned char const*>(data.data()), data.size(), hash);
+    std::array<uint8_t, MD5_DIGEST_LENGTH> hash;
+    MD5(reinterpret_cast<unsigned char const*>(data.data()), data.size(), hash.data());
 
-    return hexDump(hash, MD5_DIGEST_LENGTH);
+    return hexDump(hash.data(), MD5_DIGEST_LENGTH);
 }
 
 std::string hashKeyWithSalt(std::string const& key, std::string const& salt) {
@@ -36,7 +40,7 @@ Key::Key(std::string caption, std::string const& key, Actions actions)
 }
 
 Key::Key(UUID id, std::string caption, std::string hash, Actions actions)
-    : _id(std::move(id)), _caption(std::move(caption)), _hash(std::move(hash)), _actions(std::move(actions)) {}
+    : _id(id), _caption(std::move(caption)), _hash(std::move(hash)), _actions(std::move(actions)) {}
 
 UUID Key::id() const {
     return _id;

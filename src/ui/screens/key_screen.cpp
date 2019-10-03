@@ -38,9 +38,9 @@ class KeyScreen::Impl {
 public:
     Impl(KeyScreen* _screen, AccessControl* _accessControl)
         : screen(_screen), accessControl(_accessControl), keyList(2) {
-        keyInputScreen.onKeyInput.connect([this](std::string key) { createNewKey(key); });
+        keyInputScreen.onKeyInput.connect([this](std::string const& key) { createNewKey(key); });
 
-        keyList.signal_row_activated().connect([this](auto...) { updateKeyFormFromListSelection(); });
+        keyList.signal_row_activated().connect([this](auto... /*unused*/) { updateKeyFormFromListSelection(); });
         keyList.set_activate_on_single_click(true);
         keyList.set_headers_visible(false);
         keyList.get_column(0)->set_visible(false);
@@ -81,7 +81,7 @@ public:
         actionListModel = Gtk::ListStore::create(actionListColumns);
         actionListModel->set_sort_column(actionListColumns.caption, Gtk::SORT_ASCENDING);
         actionListModel->signal_row_changed().connect(
-            [this](auto, Gtk::TreeModel::iterator const& row) { actionSelectionChanged(row); });
+            [this](auto /*unused*/, Gtk::TreeModel::iterator const& row) { actionSelectionChanged(row); });
         actionList.set_model(actionListModel);
         actionList.append_column_editable("Selected", actionListColumns.selected);
         actionList.append_column("Caption", actionListColumns.caption);

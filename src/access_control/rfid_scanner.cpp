@@ -33,7 +33,7 @@ RfidScanner::RfidScanner(std::string const& script) {
 
                 if (isNumeric) {
                     logger->trace("Scanned key {}", key);
-                    onKeyScanned.emit(std::move(key));
+                    onKeyScanned.emit(key);
                 }
             }
             if (!scanProcess.isRunning()) {

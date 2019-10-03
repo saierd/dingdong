@@ -8,7 +8,7 @@
 class CallScreen : public Screen {
 public:
     CallScreen();
-    ~CallScreen();
+    ~CallScreen() override;
 
     Gtk::Widget& widget() override;
 

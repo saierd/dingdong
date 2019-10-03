@@ -22,16 +22,16 @@ std::string const discoveryLogCategory = "discovery";
 
 struct DiscoveryMessage {
     DiscoveryMessage(Instance const& instance, NetworkInterface const& interface) : id(instance.id()) {
-        std::strncpy(name, instance.name().c_str(), discoveryNameSize);
+        std::strncpy(name.data(), instance.name().c_str(), discoveryNameSize);
         ipAddress = interface.address().rawAddress();
     }
 
     Instance toInstance() const {
-        return { id, name, IpAddress(ipAddress) };
+        return { id, std::string(name.data()), IpAddress(ipAddress) };
     }
 
     MachineId id;
-    char name[discoveryNameSize + 1];
+    std::array<char, discoveryNameSize + 1> name;
     std::uint32_t ipAddress;
 };
 
@@ -82,7 +82,7 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
 
 class InstanceDiscovery::Impl {
 public:
-    Impl(Instance const& _self) : self(_self) {}
+    Impl(Instance _self) : self(std::move(_self)) {}
 
     Instance self;
 
@@ -171,7 +171,7 @@ public:
 
     void instancesChanged() {
         for (auto const& callback : callbacks) {
-            callback(instances);
+            callback();
         }
     }
 };
@@ -192,7 +192,7 @@ InstanceDiscovery::InstanceDiscovery(Instance const& self) {
     });
 }
 
-InstanceDiscovery::~InstanceDiscovery() {}
+InstanceDiscovery::~InstanceDiscovery() = default;
 
 void InstanceDiscovery::onInstancesChanged(InstancesChangedCallback const& callback) {
     std::lock_guard<std::mutex> lock(impl->mutex);

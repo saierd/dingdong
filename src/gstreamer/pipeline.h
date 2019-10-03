@@ -3,7 +3,7 @@
 #include <string>
 
 struct _GstElement;
-typedef struct _GstElement GstElement;
+using GstElement = struct _GstElement;
 
 class Pipeline {
 public:

@@ -14,12 +14,12 @@ UdpSocket::~UdpSocket() {
     if (handle) close(handle);
 }
 
-UdpSocket::UdpSocket(UdpSocket&& other) {
+UdpSocket::UdpSocket(UdpSocket&& other) noexcept {
     handle = other.handle;
     other.handle = 0;
 }
 
-UdpSocket& UdpSocket::operator=(UdpSocket&& other) {
+UdpSocket& UdpSocket::operator=(UdpSocket&& other) noexcept {
     handle = other.handle;
     other.handle = 0;
     return *this;

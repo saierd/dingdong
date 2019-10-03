@@ -8,7 +8,7 @@
 class KeyScreen : public Screen {
 public:
     KeyScreen(AccessControl* accessControl);
-    ~KeyScreen();
+    ~KeyScreen() override;
 
     Gtk::Widget& widget() override;
     std::vector<ScreenButton> buttons() override;

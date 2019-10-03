@@ -11,7 +11,7 @@ public:
     explicit InstanceDiscovery(Instance const& self);
     ~InstanceDiscovery();
 
-    using InstancesChangedCallback = std::function<void(std::vector<Instance> const&)>;
+    using InstancesChangedCallback = std::function<void()>;
     void onInstancesChanged(InstancesChangedCallback const& callback);
 
     std::vector<Instance> instances() const;

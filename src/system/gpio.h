@@ -13,5 +13,7 @@ public:
     void set(bool high);
 
 private:
+#ifdef RASPBERRY_PI
     unsigned int _pin;
+#endif
 };
