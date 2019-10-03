@@ -22,6 +22,9 @@ def exit_handler():
 def main():
     atexit.register(exit_handler)
 
+    reader.set_antenna_gain(7)
+    reader.init()
+
     last_tag = None
     last_detection_time = None
 

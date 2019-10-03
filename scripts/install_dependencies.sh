@@ -14,5 +14,5 @@ sudo systemctl start pigpiod
 # Enable SPI for the RFID reader (0 means on).
 sudo raspi-config nonint do_spi 0
 
-# Install a Python library for the RFID reader.
-sudo pip3 install spidev pi-rc522
+# Used by the Python RFID reader library.
+sudo pip3 install spidev
