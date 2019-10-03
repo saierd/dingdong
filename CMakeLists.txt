@@ -12,12 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdouble-promotion -Wnon-virtual-dtor -Wnull-dereference -Wold-style-cast -Wshadow")
 
-if (RASPBERRY_PI)
-    # Avoid a warning in the json library with GCC 6 on Raspberry.
-    # See https://github.com/nlohmann/json/issues/658
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-endif()
-
 include(cmake/clang_tidy.cmake)
 include(cmake/ccache.cmake)
 include(cmake/gresource.cmake)
@@ -119,7 +113,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     gstreamer
     gtkmm
     libuuid
-    nlohmann_json
+    json
     openssl
     pigpio
     spdlog
