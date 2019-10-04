@@ -4,35 +4,56 @@
 #include <cstring>
 #include <map>
 #include <mutex>
+#include <string>
+#include <string_view>
 #include <thread>
 
 #include "network/interface.h"
 #include "network/udp.h"
+#include "util/json.h"
 #include "util/logging.h"
 
 int const discoveryPort = 40001;
-
-int const discoveryNameSize = 50;
 
 std::chrono::seconds const discoverySendInterval(2);
 std::chrono::seconds const discoveryCleanupInterval(10);
 std::chrono::seconds const discoveryTimeout(10);
 
+// Discovery broadcasts are a UDP packet consisting of this ASCII string followed by data in the form of ASCII encoded
+// JSON. This allows reading the messages in Wireshark as well as extending them easily.
+std::string const discoveryBroadcastIdentifier = "DINGDONG_DISCOVERY_V1";
+
+std::string const discoveryFieldId = "id";
+std::string const discoveryFieldName = "name";
+std::string const discoveryFieldIp = "ip";
+
 std::string const discoveryLogCategory = "discovery";
 
-struct DiscoveryMessage {
-    DiscoveryMessage(Instance const& instance, NetworkInterface const& interface) : id(instance.id()) {
-        std::strncpy(name.data(), instance.name().c_str(), discoveryNameSize);
-        ipAddress = interface.address().rawAddress();
+class DiscoveryMessage {
+public:
+    explicit DiscoveryMessage(std::string_view const& serializedData) {
+        data = Json::parse(serializedData);
+    }
+
+    DiscoveryMessage(Instance const& instance, NetworkInterface const& interface) {
+        data[discoveryFieldId] = instance.id().toString();
+        data[discoveryFieldName] = instance.name();
+        data[discoveryFieldIp] = interface.address().toString();
     }
 
     Instance toInstance() const {
-        return { id, std::string(name.data()), IpAddress(ipAddress) };
+        return { MachineId(data[discoveryFieldId]), data[discoveryFieldName].get<std::string>(),
+                 IpAddress(data[discoveryFieldIp].get<std::string>()) };
     }
 
-    MachineId id;
-    std::array<char, discoveryNameSize + 1> name;
-    std::uint32_t ipAddress;
+    // Serialize the discovery message to a UDP packet.
+    std::vector<uint8_t> serialize() const {
+        std::string serializedData = discoveryBroadcastIdentifier + data.dump();
+        return { serializedData.begin(), serializedData.end() };
+    }
+
+private:
+    Json data;
 };
 
 // Periodically broadcasts discovery messages on all available interfaces.
@@ -41,11 +62,13 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
     auto interfaces = getNetworkInterfaces();
 
     std::vector<UdpSocket> sockets(interfaces.size());
-    std::vector<DiscoveryMessage> messages;
+    std::vector<UdpSocket::Data> messages;
     messages.reserve(interfaces.size());
     for (std::size_t i = 0; i < interfaces.size(); i++) {
         sockets[i].allowBroadcasts();
-        messages.emplace_back(self, interfaces[i]);
+
+        DiscoveryMessage message(self, interfaces[i]);
+        messages.emplace_back(message.serialize());
     }
 
     auto nextInterval = std::chrono::steady_clock::now() + interval;
@@ -53,7 +76,7 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
         for (std::size_t i = 0; i < interfaces.size(); i++) {
             logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(),
                           interfaces[i].address().toString());
-            sockets[i].sendStruct(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
+            sockets[i].send(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
         }
 
         std::this_thread::sleep_until(nextInterval);
@@ -62,6 +85,7 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
 }
 
 using DiscoveryCallback = std::function<void(Instance)>;
+
 void listenForDiscoveries(DiscoveryCallback const& callback) {
     auto logger = categoryLogger(discoveryLogCategory);
 
@@ -70,9 +94,18 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
 
     while (true) {
         auto data = socket.receive();
-        if (data.size() == sizeof(DiscoveryMessage)) {
-            auto discoveryMessage = reinterpret_cast<DiscoveryMessage const*>(data.data());
-            auto instance = discoveryMessage->toInstance();
+
+        auto stringFromData = [&](size_t offset, size_t size) -> std::string_view {
+            return std::string_view(reinterpret_cast<char const*>(data.data()) + offset, size);
+        };
+
+        size_t identifierSize = discoveryBroadcastIdentifier.size();
+
+        if (data.size() >= discoveryBroadcastIdentifier.size() &&
+            stringFromData(0, identifierSize) == discoveryBroadcastIdentifier) {
+            auto json = stringFromData(identifierSize, data.size() - identifierSize);
+            DiscoveryMessage message(json);
+            auto instance = message.toInstance();
             logger->debug("Received discovery message from {} (IP {})", instance.id().toString(),
                           instance.ipAddress().toString());
             callback(instance);
