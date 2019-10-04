@@ -21,6 +21,7 @@ std::chrono::seconds const callCleanupInterval(2);
 std::chrono::seconds const callPingInterval(1);
 std::chrono::seconds const callInactivityTimeout(5);
 std::chrono::seconds const callAcceptTimeout(45);
+std::chrono::minutes const callTimeout(3);
 
 char const* jsonContentType = "application/json";
 
@@ -91,6 +92,8 @@ public:
                     response.status = 500;
                     return;
                 }
+
+                callAcceptTime[call->id().toString()] = std::chrono::steady_clock::now();
 
                 // Optionally connect the accepted call if the accept API call was given a port. This is to allow auto
                 // accepting calls while the request on the calling side was not completed yet.
@@ -299,6 +302,24 @@ public:
             }
         }
 
+        // Cancel calls that went too long.
+        auto cancelTimedOutCalls = [&now, this](std::vector<Call>& calls) {
+            for (auto const& call : calls) {
+                if (call.isInvalid() || !call.isRunning()) continue;
+
+                auto acceptTime = callAcceptTime.find(call.id().toString());
+                if (acceptTime == callAcceptTime.end()) continue;
+
+                if ((now - acceptTime->second) > callTimeout) {
+                    logger->info("Cancel call {} due to timeout", call.id().toString());
+                    cancelCall(call.id(), false);
+                }
+            }
+        };
+
+        cancelTimedOutCalls(incomingCalls);
+        cancelTimedOutCalls(outgoingCalls);
+
         auto cleanupCallList = [&now, this](std::vector<Call>& calls) {
             calls.erase(std::remove_if(calls.begin(), calls.end(),
                                        [&now, this](Call const& call) {
@@ -366,6 +387,7 @@ public:
     // for that call.
     std::map<std::string, std::chrono::steady_clock::time_point> callCreationTime;
     std::map<std::string, std::chrono::steady_clock::time_point> callLastActivity;
+    std::map<std::string, std::chrono::steady_clock::time_point> callAcceptTime;
 
     httplib::Server httpServer;
     std::thread httpServerThread;
@@ -458,6 +480,10 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort) {
         if (!response || response->status != 200) {
             impl->logger->error("Error while sending request");
             success = false;
+        }
+
+        if (success) {
+            impl->callAcceptTime[callTarget->id().toString()] = std::chrono::steady_clock::now();
         }
     } else {
         success = false;

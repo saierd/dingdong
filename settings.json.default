@@ -2,7 +2,6 @@
     "instanceName": "Unknown Instance",
     "showCallScreen": true,
     "autoAccept": false,
-    "audioSourceDevice": "",
     "ringtone": "",
     "logLevel": "off"
 }
