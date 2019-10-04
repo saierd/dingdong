@@ -57,6 +57,18 @@ public:
         setFont(label, largeFontSize, true);
         label.set_text(call.targetName);
 
+        vbox.pack_start(actionsHBox);
+        actionsHBox.set_spacing(callButtonSpacing);
+        for (auto const& remoteAction : call.remoteActions) {
+            actionButtons.emplace_back(remoteAction.caption);
+            styleButton(actionButtons.back());
+            setFont(actionButtons.back(), mediumFontSize);
+            actionButtons.back().signal_clicked().connect(
+                [this, callId = call.id, actionId = remoteAction.id]() { onRequestAction(callId, actionId); });
+
+            actionsHBox.pack_start(actionButtons.back());
+        }
+
         vbox.show_all();
         accept.set_visible(call.canBeAccepted);
     }
@@ -68,6 +80,7 @@ public:
     sigc::signal<void, UUID const&> onAccept;
     sigc::signal<void, UUID const&> onCancel;
     sigc::signal<void, UUID const&, bool> onMute;
+    sigc::signal<void, UUID const&, std::string const&> onRequestAction;
 
 private:
     void updateMuteButton() {
@@ -83,10 +96,12 @@ private:
     UUID callId;
     bool muted = false;
 
-    Gtk::Box vbox, hbox;
+    Gtk::Box vbox, hbox, actionsHBox;
     Gtk::Button accept, cancel, mute;
     Gtk::Image acceptIcon, cancelIcon, muteIcon, unmuteIcon;
     Gtk::Label label;
+
+    std::vector<Gtk::Button> actionButtons;
 };
 
 class CallScreen::Impl {
@@ -114,6 +129,7 @@ void CallScreen::updateCalls(std::vector<CallInfo> const& calls) {
         impl->callWidgets.back().onAccept.connect(onAccept);
         impl->callWidgets.back().onCancel.connect(onCancel);
         impl->callWidgets.back().onMute.connect(onMute);
+        impl->callWidgets.back().onRequestAction.connect(onRequestAction);
 
         impl->box.pack_start(impl->callWidgets.back().widget());
     }

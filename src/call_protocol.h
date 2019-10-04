@@ -18,6 +18,8 @@ struct CallInfo {
     bool isRunning;
     bool isMuted;
     bool canBeAccepted;
+
+    std::vector<Instance::RemoteAction> remoteActions;
 };
 
 class CallProtocol {
@@ -33,8 +35,12 @@ public:
     void cancelCall(UUID const& id);
     void muteCall(UUID const& id, bool mute = true);
 
+    void requestRemoteAction(UUID const& callId, std::string const& actionId);
+
     sigc::signal<void> onCallsChanged;
     std::vector<CallInfo> currentActiveCalls() const;
+
+    sigc::signal<void, std::string> onActionRequested;
 
 private:
     class Impl;

@@ -26,6 +26,7 @@ std::string const discoveryBroadcastIdentifier = "DINGDONG_DISCOVERY_V1";
 std::string const discoveryFieldId = "id";
 std::string const discoveryFieldName = "name";
 std::string const discoveryFieldIp = "ip";
+std::string const discoveryFieldActions = "actions";
 
 std::string const discoveryLogCategory = "discovery";
 
@@ -39,11 +40,25 @@ public:
         data[discoveryFieldId] = instance.id().toString();
         data[discoveryFieldName] = instance.name();
         data[discoveryFieldIp] = interface.address().toString();
+
+        if (!instance.remoteActions().empty()) {
+            for (auto const& action : instance.remoteActions()) {
+                data[discoveryFieldActions][action.id] = action.caption;
+            }
+        }
     }
 
     Instance toInstance() const {
+        std::vector<Instance::RemoteAction> actions;
+        if (data.find(discoveryFieldActions) != data.end()) {
+            actions.reserve(data[discoveryFieldActions].size());
+            for (auto const& [id, caption] : data[discoveryFieldActions].items()) {
+                actions.emplace_back(Instance::RemoteAction{ id, caption });
+            }
+        }
+
         return { MachineId(data[discoveryFieldId]), data[discoveryFieldName].get<std::string>(),
-                 IpAddress(data[discoveryFieldIp].get<std::string>()) };
+                 IpAddress(data[discoveryFieldIp].get<std::string>()), std::move(actions) };
     }
 
     // Serialize the discovery message to a UDP packet.

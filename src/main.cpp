@@ -22,7 +22,10 @@ std::string const keyFile = "keys.json";
 
 std::string const rfidScannerCommand = "./scripts/read_rfid.py";
 
+std::string const shutdownAction = "shutdown";
+std::string const shutdownActionCaption = "Shutdown Application";
 std::string const manageKeysAction = "manage_keys";
+std::string const manageKeysActionCaption = "Manage Keys";
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
@@ -40,11 +43,17 @@ int main(int argc, char** argv) {
 
     AccessControl accessControl;
     accessControl.addAction(
-        std::make_unique<CallbackAction>("shutdown", "Shutdown Application", [&app]() { app->quit(); }));
-    accessControl.addAction(
-        std::make_unique<CallbackAction>(manageKeysAction, "Manage Keys", [&openKeyScreen]() { openKeyScreen(); }));
+        std::make_unique<CallbackAction>(shutdownAction, shutdownActionCaption, [&app]() { app->quit(); }));
+    accessControl.addAction(std::make_unique<CallbackAction>(manageKeysAction, manageKeysActionCaption,
+                                                             [&openKeyScreen]() { openKeyScreen(); }));
     accessControl.addActionsFromJson(self.actions());
     accessControl.loadKeyFile(keyFile);
+
+    // Add remote executable actions to the self instance so that we advertise them in the discovery.
+    for (auto const& action : accessControl.actions()) {
+        if (!action->allowRemoteExecution()) continue;
+        self.addRemoteAction({ action->id(), action->caption() });
+    }
 
     InstanceDiscovery discovery(self);
 
@@ -166,9 +175,20 @@ int main(int argc, char** argv) {
         });
     });
 
+    calls.onActionRequested.connect([&](std::string const& actionId) {
+        for (auto const& action : accessControl.actions()) {
+            if (action->id() != actionId || !action->allowRemoteExecution()) continue;
+
+            action->trigger();
+            break;
+        }
+    });
+
     callScreen.onAccept.connect([&calls](UUID const& id) { calls.acceptCall(id); });
     callScreen.onCancel.connect([&calls](UUID const& id) { calls.cancelCall(id); });
     callScreen.onMute.connect([&calls](UUID const& id, bool mute) { calls.muteCall(id, mute); });
+    callScreen.onRequestAction.connect(
+        [&calls](UUID const& callId, std::string const& actionId) { calls.requestRemoteAction(callId, actionId); });
 
     mainWindow.pushScreen(mainScreen);
     int result = app->run(mainWindow);

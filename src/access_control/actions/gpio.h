@@ -17,6 +17,8 @@ public:
     std::string caption() const override;
     void trigger() const override;
 
+    bool allowRemoteExecution() const override;
+
 private:
     class Impl;
     std::unique_ptr<Impl> impl;

@@ -152,6 +152,17 @@ public:
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
+        httpServer.Post("/action", [this](httplib::Request const& request, httplib::Response& response) {
+            auto data = Json::parse(request.body);
+            auto action = data["id"].get<std::string>();
+
+            logger->info("Received request for action {}", action);
+            protocol->onActionRequested(action);
+
+            Json result;
+            result["status"] = "ok";
+            response.set_content(result.dump(), jsonContentType);
+        });
         httpServerThread = std::thread([&]() {
             logger->debug("Start HTTP server on port {}", protocolPort);
             httpServer.listen("0.0.0.0", protocolPort);
@@ -528,6 +539,26 @@ void CallProtocol::muteCall(UUID const& id, bool mute) {
     }
 }
 
+void CallProtocol::requestRemoteAction(UUID const& callId, std::string const& actionId) {
+    impl->logger->debug("Request remote action {} for call {}", actionId, callId.toString());
+
+    auto call = impl->incomingCallById(callId);
+    if (call == nullptr) {
+        call = impl->outgoingCallById(callId);
+    }
+
+    if (call) {
+        Json data;
+        data["id"] = actionId;
+
+        auto request = clientForTarget(call->target());
+        auto response = request.Post("/action", data.dump(), jsonContentType);
+        if (!response || response->status != 200) {
+            impl->logger->error("Error while sending request");
+        }
+    }
+}
+
 std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
     std::lock_guard<std::mutex> lock(impl->mutex);
 
@@ -537,7 +568,7 @@ std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
             if (call.isInvalid()) continue;
 
             result.push_back({ call.id(), call.target().name(), call.isRunning(), call.isMuted(),
-                               canBeAccepted && !call.isRunning() });
+                               canBeAccepted && !call.isRunning(), call.target().remoteActions() });
         }
     };
 
