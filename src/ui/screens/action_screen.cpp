@@ -1,10 +1,16 @@
 #include "action_screen.h"
 
+#include <chrono>
+
+#include <gtkmm.h>
+
 #include "ui/constants.h"
 #include "ui/gtk_helpers.h"
 #include "ui/main_window.h"
 
 int const actionsPerColumn = 3;
+
+std::chrono::seconds actionScreenTimeout(20);
 
 ActionScreen::ActionScreen() {
     buttonGrid.set_column_homogeneous(true);
@@ -21,6 +27,21 @@ std::vector<ScreenButton> ActionScreen::buttons() {
     backButton.icon = "/back.svg";
 
     return { backButton };
+}
+
+void ActionScreen::onShow() {
+    timeoutConnection = Glib::signal_timeout().connect(
+        [this]() -> bool {
+            if (mainWindow && mainWindow->isCurrentScreen(*this)) {
+                mainWindow->popScreen();
+            }
+            return false;
+        },
+        std::chrono::duration_cast<std::chrono::milliseconds>(actionScreenTimeout).count());
+}
+
+void ActionScreen::onPop() {
+    timeoutConnection.disconnect();
 }
 
 void ActionScreen::updateActions(std::vector<std::shared_ptr<Action>> const& actions) {

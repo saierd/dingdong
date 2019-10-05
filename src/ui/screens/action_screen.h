@@ -16,9 +16,14 @@ public:
     Gtk::Widget& widget() override;
     std::vector<ScreenButton> buttons() override;
 
+    void onShow() override;
+    void onPop() override;
+
     void updateActions(std::vector<std::shared_ptr<Action>> const& actions);
 
 private:
     Gtk::Grid buttonGrid;
     std::vector<Gtk::Button> actionButtons;
+
+    sigc::connection timeoutConnection;
 };

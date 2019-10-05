@@ -56,7 +56,9 @@ void MainWindow::pushScreen(Screen& screen) {
 void MainWindow::popScreen() {
     if (screenStack.size() <= 1) return;
 
+    screenStack.back()->onPop();
     screenStack.pop_back();
+
     showScreen(screenStack.back());
 }
 

@@ -33,8 +33,12 @@ public:
     }
 
     virtual void onShow(){
-        // This method gets called once when the screen gets changed.
+        // This method gets called after the screen got shown in the main window.
     };
+
+    virtual void onPop() {
+        // This method gets called once the screen got popped from the main window.
+    }
 
     virtual bool handleScannedKey(std::string const& /*unused*/) {
         return false;
