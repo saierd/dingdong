@@ -16,6 +16,7 @@ RUN dpkg --add-architecture armhf \
     libgstreamer1.0-dev:armhf \
     libgtkmm-3.0-dev:armhf \
     libmount-dev:armhf \
+    libpulse-dev:armhf \
     libssl-dev:armhf \
     uuid-dev:armhf \
     x11proto-dev \

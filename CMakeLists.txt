@@ -18,6 +18,7 @@ include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
 include(cmake/openssl.cmake)
+include(cmake/pulseaudio.cmake)
 include(cmake/uuid.cmake)
 
 find_package(Threads REQUIRED)
@@ -42,6 +43,7 @@ set(HEADERS
     src/network/interface.h
     src/network/ip_address.h
     src/network/udp.h
+    src/pulseaudio_sink_occupier.h
     src/settings.h
     src/stream/audio.h
     src/stream/video.h
@@ -78,6 +80,7 @@ set(SOURCES
     src/network/interface.cpp
     src/network/ip_address.cpp
     src/network/udp.cpp
+    src/pulseaudio_sink_occupier.cpp
     src/settings.cpp
     src/stream/audio.cpp
     src/stream/video.cpp
@@ -116,6 +119,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     json
     openssl
     pigpio
+    pulseaudio
     spdlog
     Threads::Threads)
 

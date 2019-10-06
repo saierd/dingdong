@@ -1,6 +1,7 @@
 #include "call_protocol.h"
 #include "discovery.h"
 #include "gstreamer/gstreamer.h"
+#include "pulseaudio_sink_occupier.h"
 #include "settings.h"
 #include "system/beep.h"
 #include "system/gpio.h"
@@ -29,6 +30,11 @@ std::string const manageKeysActionCaption = "Manage Keys";
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
+
+    // Occupy the PulseAudio sink as a workaround for weird PulseAudio behavior. See the description of
+    // PulseAudioSinkOccupier for more information.
+    PulseAudioSinkOccupier sinkOccupier;
+
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
 
     initializeGpio();
