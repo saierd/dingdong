@@ -9,6 +9,23 @@
 std::string const gpioExecutable = "gpio -g";
 
 #ifdef RASPBERRY_PI
+GpioInputPin::GpioInputPin(unsigned int pin) : _pin(pin) {
+    runExternalProcess(fmt::format("{} mode {} input", gpioExecutable, _pin));
+}
+#else
+GpioInputPin::GpioInputPin(unsigned int /*unused*/) {}
+#endif
+
+bool GpioInputPin::read() const {
+#ifdef RASPBERRY_PI
+    ExternalProcess readPin(fmt::format("{} read {}", gpioExecutable, _pin));
+    return (readPin.readLine() == "1");
+#else
+    return false;
+#endif
+}
+
+#ifdef RASPBERRY_PI
 GpioOutputPin::GpioOutputPin(unsigned int pin) : _pin(pin) {
     runExternalProcess(fmt::format("{} mode {} output", gpioExecutable, _pin));
     set(false);

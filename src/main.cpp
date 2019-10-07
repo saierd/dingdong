@@ -10,6 +10,7 @@
 #include "screen_control.h"
 #include "settings.h"
 #include "system/beep.h"
+#include "system/gpio.h"
 #include "util/logging.h"
 
 #include "access_control/access_control.h"
@@ -34,6 +35,7 @@ std::string const manageKeysAction = "manage_keys";
 std::string const manageKeysActionCaption = "Manage Keys";
 
 std::chrono::seconds const checkScreenInterval(1);
+std::chrono::milliseconds const checkMotionSensorInterval(200);
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
@@ -202,7 +204,7 @@ int main(int argc, char** argv) {
         [&calls](UUID const& callId, std::string const& actionId) { calls.requestRemoteAction(callId, actionId); });
 
     // Forces the screen to be on unless we are on the main screen.
-    auto enableScreenIfNecessary = [&mainWindow, &mainScreen]() {
+    auto turnOnScreenIfNecessary = [&mainWindow, &mainScreen]() {
         if (!mainWindow.isCurrentScreen(mainScreen)) {
             turnScreenOn();
         }
@@ -210,15 +212,27 @@ int main(int argc, char** argv) {
 
     // Permanently check whether we currently show the main screen. If not, force the screen to be enabled.
     Glib::signal_timeout().connect(
-        [&enableScreenIfNecessary]() -> bool {
-            enableScreenIfNecessary();
+        [&turnOnScreenIfNecessary]() -> bool {
+            turnOnScreenIfNecessary();
             return true;
         },
         std::chrono::duration_cast<std::chrono::milliseconds>(checkScreenInterval).count());
 
     // Enable the screen immediately when the screen switched to a non-main screen (e.g. because we received a call or
     // an RFID tag was scanned).
-    mainWindow.onScreenChanged.connect(enableScreenIfNecessary);
+    mainWindow.onScreenChanged.connect(turnOnScreenIfNecessary);
+
+    if (self.motionSensorPin() >= 0) {
+        // Check the motion sensor periodically and turn on the screen if it is active.
+        Glib::signal_timeout().connect(
+            [motionSensorPin = GpioInputPin(self.motionSensorPin())]() -> bool {
+                if (motionSensorPin.read()) {
+                    turnScreenOn();
+                }
+                return true;
+            },
+            std::chrono::duration_cast<std::chrono::milliseconds>(checkMotionSensorInterval).count());
+    }
 
     mainWindow.pushScreen(mainScreen);
     return app->run(mainWindow);

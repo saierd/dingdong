@@ -3,5 +3,7 @@
     "showCallScreen": true,
     "autoAccept": false,
     "ringtone": "",
-    "logLevel": "off"
+    "motionSensorPin": -1,
+    "logLevel": "off",
+    "actions": {}
 }
