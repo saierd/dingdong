@@ -5,5 +5,5 @@
 std::string const beepCommand = "play -n synth .1 sine C7";
 
 void beep() {
-    ExternalProcess beep(beepCommand);
+    runExternalProcess(beepCommand);
 }

@@ -14,3 +14,5 @@ public:
 private:
     std::FILE* stream;
 };
+
+void runExternalProcess(std::string command);

@@ -51,6 +51,7 @@ void MainWindow::clearPermanentButtons() {
 void MainWindow::pushScreen(Screen& screen) {
     screenStack.push_back(&screen);
     showScreen(screenStack.back());
+    onScreenChanged();
 }
 
 void MainWindow::popScreen() {
@@ -60,6 +61,7 @@ void MainWindow::popScreen() {
     screenStack.pop_back();
 
     showScreen(screenStack.back());
+    onScreenChanged();
 }
 
 bool MainWindow::isCurrentScreen(Screen const& screen) const {

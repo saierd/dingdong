@@ -44,6 +44,7 @@ set(HEADERS
     src/network/ip_address.h
     src/network/udp.h
     src/pulseaudio_sink_occupier.h
+    src/screen_control.h
     src/settings.h
     src/stream/audio.h
     src/stream/video.h
@@ -81,6 +82,7 @@ set(SOURCES
     src/network/ip_address.cpp
     src/network/udp.cpp
     src/pulseaudio_sink_occupier.cpp
+    src/screen_control.cpp
     src/settings.cpp
     src/stream/audio.cpp
     src/stream/video.cpp

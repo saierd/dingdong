@@ -25,6 +25,8 @@ public:
     // Notify the current screen about a scanned key. Returns true if the screen handled the key.
     bool handleScannedKey(std::string const& key) const;
 
+    sigc::signal<void> onScreenChanged;
+
 private:
     void showScreen(Screen* screen);
     void updateButtons();

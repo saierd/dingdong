@@ -9,6 +9,8 @@ set -e
 DINGDONG_PATH="/opt/dingdong"
 cd "${DINGDONG_PATH}"
 
+# GPIO setup.
+
 # Enable the pigpio daemon. We use the pigpio client library to connect to this daemon and control the GPIOs.
 sudo systemctl enable pigpiod
 sudo systemctl start pigpiod
@@ -16,10 +18,14 @@ sudo systemctl start pigpiod
 # Enable SPI for the RFID reader (0 means on).
 sudo raspi-config nonint do_spi 0
 
-# Reduce the screen brightness.
+# Screen setup.
+
 sudo ./scripts/display/set_brightness.sh 100
+./scripts/display/set_screensaver_timeout.sh 20
+./scripts/display/force_on.sh
 
 # Audio Setup.
+
 # It is necessary to export this variable to connect to the user's PulseAudio session from within a systemd service.
 export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
 

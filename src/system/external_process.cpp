@@ -36,3 +36,7 @@ std::string ExternalProcess::readLine() const {
 
     return line;
 }
+
+void runExternalProcess(std::string command) {
+    ExternalProcess process(std::move(command));
+}
