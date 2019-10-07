@@ -1,41 +1,17 @@
 #include "gpio.h"
 
-extern "C" {
-#include <command.h>
-#include <pigpiod_if2.h>
-}
+#include <spdlog/fmt/fmt.h>
 
-#include "util/logging.h"
+#include "system/external_process.h"
 
-std::string const gpioLogCategory = "gpio";
-
-#ifdef RASPBERRY_PI
-static int pigpioHandle = -1;
-#endif
-
-void checkPigpioError(int error) {
-    if (error >= 0) return;
-
-    auto logger = categoryLogger(gpioLogCategory);
-    logger->error(cmdErrStr(error));
-}
-
-void initializeGpio() {
-#ifdef RASPBERRY_PI
-    pigpioHandle = pigpio_start(nullptr, nullptr);
-    checkPigpioError(pigpioHandle);
-#endif
-}
-
-void finalizeGpio() {
-#ifdef RASPBERRY_PI
-    pigpio_stop(pigpioHandle);
-#endif
-}
+// Executable for controlling GPIO on the Raspberry Pi. The -g parameter uses the original pin numbers instead of
+// the number scheme used by WiringPi.
+std::string const gpioExecutable = "gpio -g";
 
 #ifdef RASPBERRY_PI
 GpioOutputPin::GpioOutputPin(unsigned int pin) : _pin(pin) {
-    set_mode(pigpioHandle, _pin, PI_OUTPUT);
+    runExternalProcess(fmt::format("{} mode {} output", gpioExecutable, _pin));
+    set(false);
 }
 #else
 GpioOutputPin::GpioOutputPin(unsigned int /*unused*/) {}
@@ -43,7 +19,7 @@ GpioOutputPin::GpioOutputPin(unsigned int /*unused*/) {}
 
 #ifdef RASPBERRY_PI
 void GpioOutputPin::set(bool high) {
-    gpio_write(pigpioHandle, _pin, high ? 1 : 0);
+    runExternalProcess(fmt::format("{} write {} {}", gpioExecutable, _pin, high ? 1 : 0));
 }
 #else
 void GpioOutputPin::set(bool /*unused*/) {}

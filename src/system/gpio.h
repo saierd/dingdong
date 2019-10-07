@@ -3,12 +3,12 @@
 // All functions in this file only work on Raspberry Pi! On other systems they will be implemented but simply do
 // nothing.
 
-void initializeGpio();
-void finalizeGpio();
-
 class GpioOutputPin {
 public:
     GpioOutputPin(unsigned int pin);
+
+    GpioOutputPin(GpioOutputPin const&) = delete;
+    GpioOutputPin& operator=(GpioOutputPin const&) = delete;
 
     void set(bool high);
 

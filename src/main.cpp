@@ -10,7 +10,6 @@
 #include "screen_control.h"
 #include "settings.h"
 #include "system/beep.h"
-#include "system/gpio.h"
 #include "util/logging.h"
 
 #include "access_control/access_control.h"
@@ -44,8 +43,6 @@ int main(int argc, char** argv) {
     PulseAudioSinkOccupier sinkOccupier;
 
     auto app = Gtk::Application::create(argc, argv, "org.dingdong");
-
-    initializeGpio();
 
     Settings self(settingsFile);
     setLogLevel(self.logLevel());
@@ -224,9 +221,5 @@ int main(int argc, char** argv) {
     mainWindow.onScreenChanged.connect(enableScreenIfNecessary);
 
     mainWindow.pushScreen(mainScreen);
-    int result = app->run(mainWindow);
-
-    finalizeGpio();
-
-    return result;
+    return app->run(mainWindow);
 }

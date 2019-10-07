@@ -4,6 +4,3 @@
 [submodule "3rdparty/spdlog"]
 	path = 3rdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "3rdparty/pigpio"]
-	path = 3rdparty/pigpio
-	url = https://github.com/joan2937/pigpio.git

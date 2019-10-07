@@ -120,7 +120,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     libuuid
     json
     openssl
-    pigpio
     pulseaudio
     spdlog
     Threads::Threads)

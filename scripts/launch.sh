@@ -11,10 +11,6 @@ cd "${DINGDONG_PATH}"
 
 # GPIO setup.
 
-# Enable the pigpio daemon. We use the pigpio client library to connect to this daemon and control the GPIOs.
-sudo systemctl enable pigpiod
-sudo systemctl start pigpiod
-
 # Enable SPI for the RFID reader (0 means on).
 sudo raspi-config nonint do_spi 0
 

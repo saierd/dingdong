@@ -24,7 +24,7 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 # Set up the package dependencies. Note that most dependencies will be detected automatically by dpkg-shlibdeps. The
 # additional dependencies are required at runtime.
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "gstreamer1.0-pulseaudio, pulseaudio, sox, x11-xserver-utils")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "gstreamer1.0-pulseaudio, pulseaudio, sox, wiringpi, x11-xserver-utils")
 
 # Install binaries and scripts.
 install(
