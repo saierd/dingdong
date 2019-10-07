@@ -16,6 +16,9 @@ sudo systemctl start pigpiod
 # Enable SPI for the RFID reader (0 means on).
 sudo raspi-config nonint do_spi 0
 
+# Reduce the screen brightness.
+sudo ./scripts/display/set_brightness.sh 100
+
 # Audio Setup.
 # It is necessary to export this variable to connect to the user's PulseAudio session from within a systemd service.
 export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
