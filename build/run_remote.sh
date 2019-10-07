@@ -11,8 +11,8 @@ if [ -z "${ssh_host}" ]; then
     exit 1
 fi
 
-./build.sh
+./install_remote.sh "${ssh_host}"
 
-cd ../build-raspberry
-scp dingdong "${ssh_host}:dingdong"
-ssh -t "${ssh_host}" "DISPLAY=:0 ./dingdong"
+ssh -t "${ssh_host}" "sudo systemctl disable dingdong.service"
+ssh -t "${ssh_host}" "sudo systemctl stop dingdong.service"
+ssh -t "${ssh_host}" "/opt/dingdong/scripts/launch.sh"

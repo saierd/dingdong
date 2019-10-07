@@ -3,6 +3,8 @@ FROM debian:buster
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     cmake \
+    dpkg-dev \
+    file \
     g++-arm-linux-gnueabihf \
     ninja-build \
  && rm -rf /var/lib/apt/lists/*

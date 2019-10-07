@@ -18,8 +18,8 @@
 #include "ui/screens/key_screen.h"
 #include "ui/screens/main_screen.h"
 
-std::string const settingsFile = "settings.json";
-std::string const keyFile = "keys.json";
+std::string const settingsFile = "settings/settings.json";
+std::string const keyFile = "settings/keys.json";
 
 std::string const rfidScannerCommand = "./scripts/read_rfid.py";
 

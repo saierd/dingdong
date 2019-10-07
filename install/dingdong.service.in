@@ -1,0 +1,13 @@
+[Unit]
+Description=dingdong
+
+[Service]
+Environment=XAUTHORITY=/home/pi/.Xauthority
+ExecStart=@INSTALL_DIRECTORY@/scripts/launch.sh
+User=pi
+Restart=on-failure
+KillMode=process
+TimeoutSec=infinity
+
+[Install]
+WantedBy=graphical.target

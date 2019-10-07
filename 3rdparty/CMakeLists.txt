@@ -1,5 +1,5 @@
 option(SPDLOG_BUILD_TESTING OFF)
-add_subdirectory(spdlog)
+add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
 add_library(json INTERFACE)
 target_include_directories(json SYSTEM INTERFACE json)
