@@ -1,12 +1,19 @@
 #include "call_screen.h"
 
+#include <gdk/gdkx.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/drawingarea.h>
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 
+#include "stream/video.h"
+
 #include "ui/constants.h"
 #include "ui/gtk_helpers.h"
+
+// typedef struct _GdkWindow GdkWindow;
+// unsigned long gdk_x11_window_get_xid(GdkWindow* window);
 
 std::string const acceptButtonColor = colorGreen;
 std::string const cancelButtonColor = colorRed;
@@ -20,6 +27,7 @@ class CallWidget {
 public:
     explicit CallWidget(CallInfo const& call) : callId(call.id) {
         muted = call.isMuted;
+        sendingVideo = call.sendingVideo;
 
         vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
         vbox.set_spacing(10);
@@ -33,6 +41,9 @@ public:
         if (call.isRunning) {
             hbox.pack_start(mute, false, true);
             mute.set_size_request(muteButtonWidth);
+
+            hbox.pack_start(video, false, true);
+            video.set_size_request(muteButtonWidth);
         }
 
         loadButtonIconLarge(acceptIcon, "/call_start.svg");
@@ -53,6 +64,12 @@ public:
             updateMuteButton();
             onMute(callId, muted);
         });
+        updateVideoButton();
+        video.signal_clicked().connect([this]() {
+            sendingVideo = !sendingVideo;
+            updateVideoButton();
+            onEnableVideo(callId, sendingVideo);
+        });
 
         setFont(label, largeFontSize, true);
         label.set_text(call.targetName);
@@ -69,6 +86,14 @@ public:
             actionsHBox.pack_start(actionButtons.back());
         }
 
+        if (call.remoteSendsVideo) {
+            vbox.pack_start(videoArea, true, true);
+            videoArea.signal_realize().connect([videoReceiver = call.videoReceiver, &area = videoArea]() {
+                guintptr xid = gdk_x11_window_get_xid(area.get_window()->gobj());
+                videoReceiver->setWindowHandle(xid);
+            });
+        }
+
         vbox.show_all();
         accept.set_visible(call.canBeAccepted);
     }
@@ -80,6 +105,7 @@ public:
     sigc::signal<void, UUID const&> onAccept;
     sigc::signal<void, UUID const&> onCancel;
     sigc::signal<void, UUID const&, bool> onMute;
+    sigc::signal<void, UUID const&, bool> onEnableVideo;
     sigc::signal<void, UUID const&, std::string const&> onRequestAction;
 
 private:
@@ -93,13 +119,26 @@ private:
         }
     }
 
+    void updateVideoButton() {
+        styleButton(video);
+
+        if (sendingVideo) {
+            video.set_label("SENDING VIDEO");
+        } else {
+            video.set_label("NOT SENDING VIDEO");
+        }
+    }
+
     UUID callId;
     bool muted = false;
+    bool sendingVideo = false;
 
     Gtk::Box vbox, hbox, actionsHBox;
-    Gtk::Button accept, cancel, mute;
+    Gtk::Button accept, cancel, mute, video;
     Gtk::Image acceptIcon, cancelIcon, muteIcon, unmuteIcon;
     Gtk::Label label;
+
+    Gtk::DrawingArea videoArea;
 
     std::vector<Gtk::Button> actionButtons;
 };
@@ -129,7 +168,12 @@ void CallScreen::updateCalls(std::vector<CallInfo> const& calls) {
         impl->callWidgets.back().onAccept.connect(onAccept);
         impl->callWidgets.back().onCancel.connect(onCancel);
         impl->callWidgets.back().onMute.connect(onMute);
+        impl->callWidgets.back().onEnableVideo.connect(onEnableVideo);
         impl->callWidgets.back().onRequestAction.connect(onRequestAction);
+
+        if (widget().get_parent() && call.remoteSendsVideo) {
+            onVideoWidgetAddedForCall(call.id);
+        }
 
         impl->box.pack_start(impl->callWidgets.back().widget());
     }

@@ -12,7 +12,7 @@
 #include "instance.h"
 #include "ui/screen.h"
 
-class MainScreen : public Screen {
+class MainScreen : public BaseScreen {
 public:
     MainScreen();
 

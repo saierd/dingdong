@@ -5,7 +5,7 @@
 #include "access_control/access_control.h"
 #include "ui/screen.h"
 
-class KeyScreen : public Screen {
+class KeyScreen : public BaseScreen {
 public:
     KeyScreen(AccessControl* accessControl);
     ~KeyScreen() override;

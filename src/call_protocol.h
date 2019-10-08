@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <glibmm.h>
+#include <gtkmm/widget.h>
 
 #include "discovery.h"
 #include "instance.h"
@@ -13,6 +14,7 @@
 #include "system/uuid.h"
 
 class AudioManager;
+class VideoReceiver;
 
 struct CallInfo {
     UUID id;
@@ -21,6 +23,10 @@ struct CallInfo {
     bool isRunning;
     bool isMuted;
     bool canBeAccepted;
+
+    bool sendingVideo;
+    bool remoteSendsVideo;
+    std::shared_ptr<VideoReceiver> videoReceiver;
 
     std::vector<Instance::RemoteAction> remoteActions;
 };
@@ -33,10 +39,14 @@ public:
     void requestCall(Instance const& target);
 
     // Accept an incoming call.
-    void acceptCall(UUID const& id, std::optional<int> receiverPort = std::nullopt);
+    void acceptCall(UUID const& id, std::optional<int> receiverPort = std::nullopt,
+                    std::optional<int> videoReceiverPort = std::nullopt);
     // Reject an incoming call or stop any active call with the given id.
     void cancelCall(UUID const& id);
     void muteCall(UUID const& id, bool mute = true);
+    void enableVideoForCall(UUID const& id, bool sendVideo = true);
+
+    void videoUiForCallFinished(UUID const& id);
 
     void requestRemoteAction(UUID const& callId, std::string const& actionId);
 

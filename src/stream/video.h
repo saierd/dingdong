@@ -1,32 +1,32 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
+#include "gstreamer/pipeline.h"
 #include "network/ip_address.h"
 
 class VideoSender {
 public:
-    VideoSender(IpAddress const& targetHost, int targetPort);
-    ~VideoSender();
+    VideoSender(IpAddress const& targetHost, int targetPort, int width = 320, int height = 240);
 
     void start();
     void stop();
 
+    bool isRunning() const;
+
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };
 
 class VideoReceiver {
 public:
     explicit VideoReceiver(int sourcePort);
-    ~VideoReceiver();
 
     void start();
     void stop();
 
+    void setWindowHandle(unsigned long window);
+
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };

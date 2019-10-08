@@ -204,8 +204,10 @@ int main(int argc, char** argv) {
     callScreen.onAccept.connect([&calls](UUID const& id) { calls.acceptCall(id); });
     callScreen.onCancel.connect([&calls](UUID const& id) { calls.cancelCall(id); });
     callScreen.onMute.connect([&calls](UUID const& id, bool mute) { calls.muteCall(id, mute); });
+    callScreen.onEnableVideo.connect([&calls](UUID const& id, bool enable) { calls.enableVideoForCall(id, enable); });
     callScreen.onRequestAction.connect(
         [&calls](UUID const& callId, std::string const& actionId) { calls.requestRemoteAction(callId, actionId); });
+    callScreen.onVideoWidgetAddedForCall.connect([&calls](UUID const& id) { calls.videoUiForCallFinished(id); });
 
     auto updateInstanceScreen = [&mainScreen, &discovery, &calls]() {
         // Update the buttons on the main screen for the new instances.

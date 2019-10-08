@@ -16,6 +16,7 @@ RUN dpkg --add-architecture armhf \
     libblkid1:armhf \
     libglib2.0-dev:armhf \
     libgstreamer1.0-dev:armhf \
+    libgstreamer-plugins-base1.0-dev:armhf \
     libgtkmm-3.0-dev:armhf \
     libmount-dev:armhf \
     libpulse-dev:armhf \
