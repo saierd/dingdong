@@ -43,7 +43,8 @@ std::shared_ptr<GpioAction> GpioAction::fromJson(std::string id, Json const& jso
     if (action->impl->id.empty() || action->impl->caption.empty()) return nullptr;
 
     unsigned int pin = json["pin"];
-    action->impl->pin = std::make_unique<GpioOutputPin>(pin);
+    bool relay = (json.contains("relay") && json["relay"].get<bool>());
+    action->impl->pin = std::make_unique<GpioOutputPin>(pin, relay);
 
     action->impl->duration = std::chrono::milliseconds(json["duration"].get<unsigned int>());
 

@@ -14,6 +14,9 @@ cd "${DINGDONG_PATH}"
 # Enable SPI for the RFID reader (0 means on).
 sudo raspi-config nonint do_spi 0
 
+# Enable I2C for the relay shield (0 means on).
+sudo raspi-config nonint do_i2c 0
+
 # Screen setup.
 
 sudo ./scripts/display/set_brightness.sh 100

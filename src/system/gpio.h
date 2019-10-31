@@ -15,9 +15,11 @@ private:
 #endif
 };
 
+// A GPIO output pin, identified by the BCM pin number. If the relay flag is set, the pin can also refer to a relay on a
+// relay board from Sequent Microsystems.
 class GpioOutputPin {
 public:
-    GpioOutputPin(unsigned int pin);
+    GpioOutputPin(unsigned int pin, bool relay = false);
 
     GpioOutputPin(GpioOutputPin const&) = delete;
     GpioOutputPin& operator=(GpioOutputPin const&) = delete;
@@ -27,5 +29,6 @@ public:
 private:
 #ifdef RASPBERRY_PI
     unsigned int _pin;
+    bool _relay = false;
 #endif
 };
