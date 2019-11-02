@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 // All functions in this file only work on Raspberry Pi! On other systems they will be implemented but simply do
 // nothing.
 
@@ -20,6 +22,7 @@ private:
 class GpioOutputPin {
 public:
     GpioOutputPin(unsigned int pin, bool relay = false);
+    ~GpioOutputPin();
 
     GpioOutputPin(GpioOutputPin const&) = delete;
     GpioOutputPin& operator=(GpioOutputPin const&) = delete;
@@ -30,5 +33,7 @@ private:
 #ifdef RASPBERRY_PI
     unsigned int _pin;
     bool _relay = false;
+
+    std::unique_lock<std::mutex> lock;
 #endif
 };

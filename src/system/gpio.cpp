@@ -12,6 +12,13 @@ std::string const gpioExecutable = "gpio -g";
 std::string const relayExecutable = "./scripts/set_relay.py";
 
 #ifdef RASPBERRY_PI
+// Mutex that should be locked while an output pin is set to high. This is to limit current drawn by any external
+// devices that are connected to those outputs. When a GPIO action is triggered and wants to set an output to high it
+// might have to wait until the last action is finished.
+static std::mutex gpioOutputMutex;
+#endif
+
+#ifdef RASPBERRY_PI
 GpioInputPin::GpioInputPin(unsigned int pin) : _pin(pin) {
     runExternalProcess(fmt::format("{} mode {} input", gpioExecutable, _pin));
 }
@@ -39,8 +46,22 @@ GpioOutputPin::GpioOutputPin(unsigned int pin, bool relay) : _pin(pin), _relay(r
 GpioOutputPin::GpioOutputPin(unsigned int /*unused*/, bool /*unused*/) {}
 #endif
 
+GpioOutputPin::~GpioOutputPin() {
+    try {
+        set(false);
+    } catch (...) {
+    }
+}
+
 #ifdef RASPBERRY_PI
 void GpioOutputPin::set(bool high) {
+    // Acquire lock while pin is set to high.
+    if (high && !lock.owns_lock()) {
+        lock = std::unique_lock(gpioOutputMutex);
+    } else if (!high && lock.owns_lock()) {
+        lock.unlock();
+    }
+
     if (!_relay) {
         runExternalProcess(fmt::format("{} write {} {}", gpioExecutable, _pin, high ? 1 : 0));
     } else {
