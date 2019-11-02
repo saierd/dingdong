@@ -35,6 +35,11 @@ install(
     DESTINATION "${INSTALL_DIRECTORY}"
     USE_SOURCE_PERMISSIONS)
 
+# Install data files.
+install(
+    DIRECTORY "data"
+    DESTINATION "${INSTALL_DIRECTORY}")
+
 # Create a settings directory that is writable for the dingdong service.
 install(
     DIRECTORY
