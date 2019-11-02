@@ -49,7 +49,6 @@ set(HEADERS
     src/stream/audio.h
     src/stream/video.h
     src/system/beep.h
-    src/system/external_process.h
     src/system/gpio.h
     src/system/machine_id.h
     src/system/uuid.h
@@ -87,7 +86,6 @@ set(SOURCES
     src/stream/audio.cpp
     src/stream/video.cpp
     src/system/beep.cpp
-    src/system/external_process.cpp
     src/system/gpio.cpp
     src/system/machine_id.cpp
     src/system/uuid.cpp
@@ -121,6 +119,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     json
     openssl
     pulseaudio
+    procxx
     spdlog
     Threads::Threads)
 

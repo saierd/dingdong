@@ -3,24 +3,29 @@
 #include <cctype>
 #include <thread>
 
-#include "system/external_process.h"
+#include <procxx/process.h>
+
 #include "util/logging.h"
 
 std::string const rfidLoggingCategory = "rfid";
+
+std::string const rfidScannerCommand = "./scripts/read_rfid.py";
 
 class RfidScanner::Impl {
 public:
     std::thread scanThread;
 };
 
-RfidScanner::RfidScanner(std::string const& script) {
+RfidScanner::RfidScanner() {
     impl = std::make_unique<Impl>();
-    impl->scanThread = std::thread([this, script]() {
+    impl->scanThread = std::thread([this]() {
         auto logger = categoryLogger(rfidLoggingCategory);
-        ExternalProcess scanProcess(script);
+        procxx::process scanProcess(rfidScannerCommand);
+        scanProcess.exec();
 
         while (true) {
-            std::string key = scanProcess.readLine();
+            std::string key;
+            std::getline(scanProcess.output(), key);
             if (!key.empty()) {
                 // Sometimes, the scanner outputs some error codes like "E2" and similar things, skip those.
                 bool isNumeric = true;
@@ -36,9 +41,12 @@ RfidScanner::RfidScanner(std::string const& script) {
                     onKeyScanned.emit(key);
                 }
             }
-            if (!scanProcess.isRunning()) {
+            if (!scanProcess.running()) {
                 logger->error("RFID scanning process stopped working");
-                break;
+
+                // Try to restart the process.
+                scanProcess.wait();
+                scanProcess.exec();
             }
         }
     });

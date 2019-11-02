@@ -2,14 +2,17 @@
 
 #include <spdlog/fmt/fmt.h>
 
-#include "system/external_process.h"
-
-// Executable for controlling GPIO on the Raspberry Pi. The -g parameter uses the original pin numbers instead of
-// the number scheme used by WiringPi.
-std::string const gpioExecutable = "gpio -g";
+#include <procxx/process.h>
 
 // Script for controlling relays on the relay extension board.
 std::string const relayExecutable = "./scripts/set_relay.py";
+
+// Uses WiringPi's gpio command to control the GPIO pins on the Raspberry Pi. The -g parameter uses the original pin
+// numbers instead of the number scheme used by WiringPi.
+template<typename... Args>
+procxx::process runGpioCommand(Args&&... args) {
+    return procxx::process("gpio", "-g", std::forward<Args>(args)...);
+}
 
 #ifdef RASPBERRY_PI
 // Mutex that should be locked while an output pin is set to high. This is to limit current drawn by any external
@@ -20,7 +23,7 @@ static std::mutex gpioOutputMutex;
 
 #ifdef RASPBERRY_PI
 GpioInputPin::GpioInputPin(unsigned int pin) : _pin(pin) {
-    runExternalProcess(fmt::format("{} mode {} input", gpioExecutable, _pin));
+    runGpioCommand("mode", std::to_string(_pin), "input").exec();
 }
 #else
 GpioInputPin::GpioInputPin(unsigned int /*unused*/) {}
@@ -28,8 +31,12 @@ GpioInputPin::GpioInputPin(unsigned int /*unused*/) {}
 
 bool GpioInputPin::read() const {
 #ifdef RASPBERRY_PI
-    ExternalProcess readPin(fmt::format("{} read {}", gpioExecutable, _pin));
-    return (readPin.readLine() == "1");
+    auto read = runGpioCommand("read", std::to_string(_pin));
+    read.exec();
+
+    std::string result;
+    std::getline(read.output(), result);
+    return (result == "1");
 #else
     return false;
 #endif
@@ -38,7 +45,7 @@ bool GpioInputPin::read() const {
 #ifdef RASPBERRY_PI
 GpioOutputPin::GpioOutputPin(unsigned int pin, bool relay) : _pin(pin), _relay(relay) {
     if (!_relay) {
-        runExternalProcess(fmt::format("{} mode {} output", gpioExecutable, _pin));
+        runGpioCommand("mode", std::to_string(_pin), "output").exec();
     }
     set(false);
 }
@@ -63,9 +70,9 @@ void GpioOutputPin::set(bool high) {
     }
 
     if (!_relay) {
-        runExternalProcess(fmt::format("{} write {} {}", gpioExecutable, _pin, high ? 1 : 0));
+        runGpioCommand("write", std::to_string(_pin), std::to_string(high ? 1 : 0)).exec();
     } else {
-        runExternalProcess(fmt::format("{} {} {}", relayExecutable, _pin, high ? 1 : 0));
+        procxx::process(relayExecutable, std::to_string(_pin), std::to_string(high ? 1 : 0)).exec();
     }
 }
 #else

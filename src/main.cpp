@@ -27,8 +27,6 @@
 std::string const settingsFile = "settings/settings.json";
 std::string const keyFile = "settings/keys.json";
 
-std::string const rfidScannerCommand = "./scripts/read_rfid.py";
-
 std::string const shutdownAction = "shutdown";
 std::string const shutdownActionCaption = "Shutdown Application";
 std::string const manageKeysAction = "manage_keys";
@@ -125,7 +123,7 @@ int main(int argc, char** argv) {
     });
 
 #ifdef RASPBERRY_PI
-    RfidScanner rfidScanner(rfidScannerCommand);
+    RfidScanner rfidScanner;
     rfidScanner.onKeyScanned.connect([&mainWindow, &accessControl, &mainScreen, &actionScreen](std::string scannedKey) {
         Glib::signal_idle().connect([&, scannedKey = std::move(scannedKey)]() {
             if (mainWindow.handleScannedKey(scannedKey)) {

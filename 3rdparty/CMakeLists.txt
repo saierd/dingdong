@@ -11,3 +11,6 @@ endif()
 
 add_library(cpp-httplib INTERFACE)
 target_include_directories(cpp-httplib SYSTEM INTERFACE cpp-httplib)
+
+add_library(procxx INTERFACE)
+target_include_directories(procxx SYSTEM INTERFACE procxx)

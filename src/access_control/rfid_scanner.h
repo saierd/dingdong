@@ -7,7 +7,7 @@
 
 class RfidScanner {
 public:
-    RfidScanner(std::string const& script);
+    RfidScanner();
     ~RfidScanner();
 
     sigc::signal<void, std::string> onKeyScanned;
