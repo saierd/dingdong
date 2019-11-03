@@ -6,8 +6,7 @@ int const iconSize = 48;
 int const iconSizeLarge = 64;
 
 int const defaultPadding = 15;
-int const mediumPadding = 22;
-int const largePadding = 25;
+int const largePadding = 20;
 int const defaultSpacing = 20;
 
 std::string const colorGreen = "#3B3";

@@ -4,7 +4,7 @@
 #include "gtk_helpers.h"
 
 std::string const windowBackgroundColor = colorWhite;
-int const mainWindowPadding = 30;
+int const mainWindowPadding = largePadding;
 
 int const buttonMinimumWidth = 100;
 

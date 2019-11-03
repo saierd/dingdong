@@ -51,7 +51,7 @@ void ActionScreen::updateActions(std::vector<std::shared_ptr<Action>> const& act
     int column = 0;
     for (auto const& action : actions) {
         actionButtons.emplace_back(action->caption());
-        styleButton(actionButtons.back(), mediumPadding);
+        styleButton(actionButtons.back(), largePadding);
         setFont(actionButtons.back(), mediumFontSize, true);
 
         actionButtons.back().signal_clicked().connect([action, this]() {

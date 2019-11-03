@@ -10,7 +10,7 @@
 #include "ui/gtk_helpers.h"
 #include "ui/main_window.h"
 
-int const buttonSize = 80;
+int const buttonSize = 95;
 
 class KeyInputScreen::Impl {
 public:
