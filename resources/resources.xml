@@ -4,6 +4,7 @@
         <file alias="logo.png">logo/logo.png</file>
         <file alias="add.svg">../3rdparty/material-design-icons/ic_add_24px.svg</file>
         <file alias="back.svg">../3rdparty/material-design-icons/ic_arrow_back_24px.svg</file>
+        <file alias="bell.svg">../3rdparty/material-design-icons/bell_ring.svg</file>
         <file alias="call_start.svg">../3rdparty/material-design-icons/ic_call_24px.svg</file>
         <file alias="call_stop.svg">../3rdparty/material-design-icons/ic_call_end_24px.svg</file>
         <file alias="check.svg">../3rdparty/material-design-icons/ic_check_24px.svg</file>
@@ -13,5 +14,6 @@
         <file alias="microphone_off.svg">../3rdparty/material-design-icons/ic_mic_off_24px.svg</file>
         <file alias="save.svg">../3rdparty/material-design-icons/ic_save_24px.svg</file>
         <file alias="settings.svg">../3rdparty/material-design-icons/ic_settings_24px.svg</file>
+        <file alias="speaker.svg">../3rdparty/material-design-icons/ic_volume_up_24px.svg</file>
     </gresource>
 </gresources>

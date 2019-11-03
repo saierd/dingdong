@@ -14,6 +14,7 @@
 
 struct CallInfo {
     UUID id;
+    MachineId targetId;
     std::string targetName;
     bool isRunning;
     bool isMuted;

@@ -567,7 +567,7 @@ std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
         for (auto const& call : calls) {
             if (call.isInvalid()) continue;
 
-            result.push_back({ call.id(), call.target().name(), call.isRunning(), call.isMuted(),
+            result.push_back({ call.id(), call.target().id(), call.target().name(), call.isRunning(), call.isMuted(),
                                canBeAccepted && !call.isRunning(), call.target().remoteActions() });
         }
     };

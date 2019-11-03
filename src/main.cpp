@@ -162,14 +162,6 @@ int main(int argc, char** argv) {
     });
 #endif
 
-    discovery.onInstancesChanged([&mainScreen, &discovery]() {
-        // Update the buttons on the main screen for the new instances.
-        Glib::signal_idle().connect([&]() {
-            mainScreen.updateInstances(discovery.instances());
-            return false;  // Disconnect the function.
-        });
-    });
-
     CallProtocol calls(self, discovery);
     mainScreen.onCall.connect([&calls](Instance const& instance) {
         log()->info("Call {} ({})", instance.id().toString(), instance.name());
@@ -211,6 +203,17 @@ int main(int argc, char** argv) {
     callScreen.onMute.connect([&calls](UUID const& id, bool mute) { calls.muteCall(id, mute); });
     callScreen.onRequestAction.connect(
         [&calls](UUID const& callId, std::string const& actionId) { calls.requestRemoteAction(callId, actionId); });
+
+    auto updateInstanceScreen = [&mainScreen, &discovery, &calls]() {
+        // Update the buttons on the main screen for the new instances.
+        Glib::signal_idle().connect([&]() {
+            mainScreen.updateInstances(discovery.instances(), calls.currentActiveCalls());
+            return false;  // Disconnect the function.
+        });
+    };
+
+    discovery.onInstancesChanged(updateInstanceScreen);
+    calls.onCallsChanged.connect(updateInstanceScreen);
 
     // Forces the screen to be on unless we are on the main screen.
     auto turnOnScreenIfNecessary = [&mainWindow, &mainScreen]() {
