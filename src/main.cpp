@@ -3,6 +3,8 @@
 
 #include <glib.h>
 
+#include <procxx/process.h>
+
 #include "call_protocol.h"
 #include "discovery.h"
 #include "gstreamer/gstreamer.h"
@@ -53,8 +55,17 @@ int main(int argc, char** argv) {
     std::function<void()> openKeyScreen;
 
     AccessControl accessControl;
-    accessControl.addAction(
-        std::make_unique<CallbackAction>(shutdownAction, shutdownActionCaption, [&app]() { app->quit(); }));
+    accessControl.addAction(std::make_unique<CallbackAction>(shutdownAction, shutdownActionCaption, [&app]() {
+#ifdef RASPBERRY_PI
+        // Stop the service to avoid restarting immediately. The service will automatically be started again when the
+        // system reboots.
+        try {
+            procxx::process("sudo", "service", "dingdong", "stop").exec();
+        } catch (...) {
+        }
+#endif
+        app->quit();
+    }));
     accessControl.addAction(std::make_unique<CallbackAction>(manageKeysAction, manageKeysActionCaption,
                                                              [&openKeyScreen]() { openKeyScreen(); }));
     accessControl.addActionsFromJson(self.actions());
