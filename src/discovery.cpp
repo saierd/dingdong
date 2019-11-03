@@ -74,24 +74,42 @@ private:
 // Periodically broadcasts discovery messages on all available interfaces.
 void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) {
     auto logger = categoryLogger(discoveryLogCategory);
-    auto interfaces = getNetworkInterfaces();
 
-    std::vector<UdpSocket> sockets(interfaces.size());
+    std::vector<NetworkInterface> interfaces;
+    std::vector<UdpSocket> sockets;
     std::vector<UdpSocket::Data> messages;
-    messages.reserve(interfaces.size());
-    for (std::size_t i = 0; i < interfaces.size(); i++) {
-        sockets[i].allowBroadcasts();
 
-        DiscoveryMessage message(self, interfaces[i]);
-        messages.emplace_back(message.serialize());
-    }
+    auto updateInterfaces = [&]() {
+        auto newInterfaces = getNetworkInterfaces();
+        if (interfaces == newInterfaces) return;
+
+        interfaces.clear();
+        sockets.clear();
+        messages.clear();
+
+        interfaces = std::move(newInterfaces);
+        sockets.resize(interfaces.size());
+        messages.reserve(interfaces.size());
+        for (std::size_t i = 0; i < interfaces.size(); i++) {
+            sockets[i].allowBroadcasts();
+
+            DiscoveryMessage message(self, interfaces[i]);
+            messages.emplace_back(message.serialize());
+        }
+    };
 
     auto nextInterval = std::chrono::steady_clock::now() + interval;
     while (true) {
-        for (std::size_t i = 0; i < interfaces.size(); i++) {
-            logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(),
-                          interfaces[i].address().toString());
-            sockets[i].send(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
+        try {
+            updateInterfaces();
+
+            for (std::size_t i = 0; i < interfaces.size(); i++) {
+                logger->debug("Broadcast discovery message on interface {} (IP {})", interfaces[i].name(),
+                              interfaces[i].address().toString());
+                sockets[i].send(messages[i], interfaces[i].broadcastAddress(), discoveryPort);
+            }
+        } catch (...) {
+            logger->error("Caught error in discovery thread");
         }
 
         std::this_thread::sleep_until(nextInterval);

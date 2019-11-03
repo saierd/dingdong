@@ -28,6 +28,15 @@ public:
         return _address == IpAddress("127.0.0.1");
     }
 
+    bool operator==(NetworkInterface const& other) const {
+        return _name == other._name && _address == other._address && _netmask == other._netmask &&
+               _broadcastAddress == other._broadcastAddress;
+    }
+
+    bool operator!=(NetworkInterface const& other) const {
+        return !(*this == other);
+    }
+
 private:
     std::string _name;
     IpAddress _address;
