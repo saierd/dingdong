@@ -49,6 +49,13 @@ fi
 ./scripts/audio/choose_audio_source.sh
 ./scripts/audio/set_volume.sh
 
+# Ensure the echo cancellation module is loaded for the audio source that was chosen above. This creates a virtual sink
+# and source. Make sure that we use those devices, otherwise echo cancellation might not work.
+pactl unload-module module-echo-cancel
+pactl load-module module-echo-cancel source_name=noechosource sink_name=noechosink aec_method=webrtc aec_args="analog_gain_control=0\ digital_gain_control=1"
+pacmd set-default-source "noechosource"
+pacmd set-default-sink "noechosink"
+
 # Launch the dingdong GUI.
 # ========================
 
