@@ -20,7 +20,7 @@ public:
     UdpSocket(UdpSocket&& other) noexcept;
     UdpSocket& operator=(UdpSocket&& other) noexcept;
 
-    void bind(int port = 0);
+    void bind(int port = 0, bool allowAddressReuse = false);
     void allowBroadcasts();
 
     void send(uint8_t const* data, int size, IpAddress const& address, int port) const;

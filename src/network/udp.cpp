@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <util/logging.h>
+
 UdpSocket::UdpSocket() {
     handle = socket(AF_INET, SOCK_DGRAM, 0);
 }
@@ -25,7 +27,14 @@ UdpSocket& UdpSocket::operator=(UdpSocket&& other) noexcept {
     return *this;
 }
 
-void UdpSocket::bind(int port) {
+void UdpSocket::bind(int port, bool allowAddressReuse) {
+    if (allowAddressReuse) {
+        int value = 1;
+        if (setsockopt(handle, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) == -1) {
+            log()->error("Setting SO_REUSEADDR failed with error code {}", errno);
+        }
+    }
+
     struct sockaddr_in addr;
 
     std::memset(&addr, 0, sizeof(addr));
@@ -33,12 +42,16 @@ void UdpSocket::bind(int port) {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(static_cast<decltype(addr.sin_port)>(port));
 
-    ::bind(handle, reinterpret_cast<struct sockaddr const*>(&addr), sizeof(addr));
+    if (::bind(handle, reinterpret_cast<struct sockaddr const*>(&addr), sizeof(addr)) == -1) {
+        log()->error("Bind failed with error code {}", errno);
+    }
 }
 
 void UdpSocket::allowBroadcasts() {
     int enable = 1;
-    setsockopt(handle, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
+    if (setsockopt(handle, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable)) == -1) {
+        log()->error("Setting SO_BROADCAST failed with error code {}", errno);
+    }
 }
 
 void UdpSocket::send(uint8_t const* data, int size, IpAddress const& address, int port) const {

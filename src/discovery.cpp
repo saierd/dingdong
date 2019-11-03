@@ -105,7 +105,7 @@ void listenForDiscoveries(DiscoveryCallback const& callback) {
     auto logger = categoryLogger(discoveryLogCategory);
 
     UdpSocket socket;
-    socket.bind(discoveryPort);
+    socket.bind(discoveryPort, true);
 
     while (true) {
         auto data = socket.receive();
