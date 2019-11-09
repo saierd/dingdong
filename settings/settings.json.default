@@ -1,5 +1,6 @@
 {
     "instanceName": "Unknown Instance",
+    "instanceOrder": 0,
     "showCallScreen": true,
     "autoAccept": false,
     "ringtone": "",

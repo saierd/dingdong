@@ -26,6 +26,7 @@ std::string const discoveryBroadcastIdentifier = "DINGDONG_DISCOVERY_V1";
 std::string const discoveryFieldId = "id";
 std::string const discoveryFieldName = "name";
 std::string const discoveryFieldIp = "ip";
+std::string const discoveryFieldOrder = "order";
 std::string const discoveryFieldActions = "actions";
 
 std::string const discoveryLogCategory = "discovery";
@@ -40,6 +41,7 @@ public:
         data[discoveryFieldId] = instance.id().toString();
         data[discoveryFieldName] = instance.name();
         data[discoveryFieldIp] = interface.address().toString();
+        data[discoveryFieldOrder] = instance.order();
 
         if (!instance.remoteActions().empty()) {
             for (auto const& action : instance.remoteActions()) {
@@ -57,8 +59,13 @@ public:
             }
         }
 
+        int order = 0;
+        if (data.find(discoveryFieldOrder) != data.end()) {
+            order = data[discoveryFieldOrder];
+        }
+
         return { MachineId(data[discoveryFieldId]), data[discoveryFieldName].get<std::string>(),
-                 IpAddress(data[discoveryFieldIp].get<std::string>()), std::move(actions) };
+                 IpAddress(data[discoveryFieldIp].get<std::string>()), order, std::move(actions) };
     }
 
     // Serialize the discovery message to a UDP packet.
@@ -188,6 +195,11 @@ public:
         if (!found) {
             instances.push_back(newInstance);
             changed = true;
+        }
+
+        if (changed) {
+            std::sort(instances.begin(), instances.end(),
+                      [](Instance const& a, Instance const& b) { return a.order() < b.order(); });
         }
 
         if (changed || forceInstancesChangedSignal) {

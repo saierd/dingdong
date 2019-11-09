@@ -15,6 +15,7 @@ Settings::Settings(std::string const& settingsFile) : Instance(getMachineId(), "
         auto data = Json::parse(file);
 
         getValueFromJson(_name, data, "instanceName");
+        getValueFromJson(_order, data, "instanceOrder");
         getValueFromJson(_showCallScreen, data, "showCallScreen");
         getValueFromJson(_autoAccept, data, "autoAccept");
         if (!_showCallScreen) {
