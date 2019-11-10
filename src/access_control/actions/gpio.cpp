@@ -9,6 +9,7 @@ class GpioAction::Impl {
 public:
     std::string id;
     std::string caption;
+    int order = 0;
     bool allowRemoteExecution = false;
 
     std::unique_ptr<GpioOutputPin> pin;
@@ -36,8 +37,11 @@ std::shared_ptr<GpioAction> GpioAction::fromJson(std::string id, Json const& jso
 
     action->impl->id = std::move(id);
     action->impl->caption = json["caption"];
+    if (json.find("order") != json.end()) {
+        action->impl->order = json["order"];
+    }
     if (json.find("remote") != json.end()) {
-        action->impl->allowRemoteExecution = json["remote"].get<bool>();
+        action->impl->allowRemoteExecution = json["remote"];
     }
 
     if (action->impl->id.empty() || action->impl->caption.empty()) return nullptr;
@@ -70,6 +74,10 @@ void GpioAction::trigger() const {
         std::this_thread::sleep_for(impl->duration);
         impl->pin->set(false);
     });
+}
+
+int GpioAction::order() const {
+    return impl->order;
 }
 
 bool GpioAction::allowRemoteExecution() const {

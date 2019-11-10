@@ -37,10 +37,13 @@ std::string hashKeyWithSalt(std::string const& key, std::string const& salt) {
 Key::Key(std::string caption, std::string const& key, Actions actions)
     : _caption(std::move(caption)), _actions(std::move(actions)) {
     _hash = hashKeyWithSalt(key, _id.toString());
+    sortActions();
 }
 
 Key::Key(UUID id, std::string caption, std::string hash, Actions actions)
-    : _id(id), _caption(std::move(caption)), _hash(std::move(hash)), _actions(std::move(actions)) {}
+    : _id(id), _caption(std::move(caption)), _hash(std::move(hash)), _actions(std::move(actions)) {
+    sortActions();
+}
 
 UUID Key::id() const {
     return _id;
@@ -70,6 +73,7 @@ void Key::setCaption(std::string newCaption) {
 void Key::addAction(std::shared_ptr<Action> const& action) {
     if (hasAction(*action)) return;
     _actions.push_back(action);
+    sortActions();
 }
 
 void Key::removeAction(Action const& actionToRemove) {
@@ -105,4 +109,10 @@ Key Key::fromJson(Json const& json, std::function<std::shared_ptr<Action>(std::s
 
 bool Key::matches(std::string const& key) const {
     return _hash == hashKeyWithSalt(key, _id.toString());
+}
+
+void Key::sortActions() {
+    std::sort(_actions.begin(), _actions.end(), [](std::shared_ptr<Action> const& a, std::shared_ptr<Action> const& b) {
+        return a->order() < b->order();
+    });
 }

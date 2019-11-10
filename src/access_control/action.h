@@ -10,6 +10,10 @@ public:
     virtual std::string caption() const = 0;
     virtual void trigger() const = 0;
 
+    virtual int order() const {
+        return 0;
+    }
+
     virtual bool allowRemoteExecution() const {
         return false;
     }

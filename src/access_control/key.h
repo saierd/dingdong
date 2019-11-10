@@ -33,6 +33,8 @@ public:
     bool matches(std::string const& key) const;
 
 private:
+    void sortActions();
+
     // ID of the key, also used as a salt for hashing the key.
     UUID _id;
 

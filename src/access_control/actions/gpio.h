@@ -17,6 +17,8 @@ public:
     std::string caption() const override;
     void trigger() const override;
 
+    int order() const override;
+
     bool allowRemoteExecution() const override;
 
 private:
