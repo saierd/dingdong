@@ -22,6 +22,8 @@ Settings::Settings(std::string const& settingsFile) : Instance(getMachineId(), "
             _autoAccept = true;  // Can't accept calls otherwise.
         }
         getValueFromJson(_ringtone, data, "ringtone");
+        getValueFromJson(_ringtoneVolume, data, "ringtoneVolume");
+        getValueFromJson(_callVolume, data, "callVolume");
         getValueFromJson(_motionSensorPin, data, "motionSensorPin");
 
         getValueFromJson(_logLevel, data, "logLevel");

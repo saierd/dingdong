@@ -32,7 +32,7 @@ httplib::Client clientForTarget(Instance const& target) {
 class CallProtocol::Impl {
 public:
     Impl(CallProtocol* _protocol, Settings _self, InstanceDiscovery const& _instances)
-        : protocol(_protocol), self(std::move(_self)), instances(_instances) {
+        : protocol(_protocol), self(std::move(_self)), instances(_instances), ringtonePlayer(self.ringtoneVolume()) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -188,7 +188,7 @@ public:
     }
 
     Call& createIncomingCall(UUID const& id, Instance const& instance) {
-        incomingCalls.emplace_back(id, instance);
+        incomingCalls.emplace_back(self, id, instance);
 
         auto& newCall = incomingCalls.back();
         callLastActivity[newCall.id().toString()] = std::chrono::steady_clock::now();
@@ -198,7 +198,7 @@ public:
     }
 
     Call& createOutgoingCall(Instance const& target) {
-        outgoingCalls.emplace_back(target);
+        outgoingCalls.emplace_back(self, target);
 
         auto& newCall = outgoingCalls.back();
         logger->debug("Created call with id {}", newCall.id().toString());
@@ -417,19 +417,24 @@ void CallProtocol::requestCall(Instance const& target) {
     impl->logger->debug("Request call to {}", target.id().toString());
 
     bool alreadyCalled = false;
+    bool callAlreadyRunning = false;
     {
         std::lock_guard<std::mutex> lock(impl->mutex);
         for (auto const& call : impl->outgoingCalls) {
             if (call.target().id() == target.id() && !call.isInvalid()) {
                 alreadyCalled = true;
+                callAlreadyRunning = call.isRunning();
                 break;
             }
         }
     }
     if (alreadyCalled) {
-        // We already have a call to the target instance. Ring again.
-        auto request = clientForTarget(target);
-        request.Get("/ring");
+        // We already have a call to the target instance. Ring again. This has to happen without having the call mutex
+        // locked to avoid a deadlock.
+        if (!callAlreadyRunning) {
+            auto request = clientForTarget(target);
+            request.Get("/ring");
+        }
         return;
     }
 

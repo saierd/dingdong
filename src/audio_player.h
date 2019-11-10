@@ -5,7 +5,7 @@
 
 class AudioPlayer {
 public:
-    AudioPlayer();
+    AudioPlayer(double volume = 1);
     ~AudioPlayer();
 
     void play(std::string const& file);

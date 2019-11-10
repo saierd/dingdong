@@ -21,7 +21,7 @@ private:
 
 class AudioReceiver {
 public:
-    explicit AudioReceiver(int sourcePort);
+    explicit AudioReceiver(int sourcePort, double volume = 1);
 
     void start();
     void stop();

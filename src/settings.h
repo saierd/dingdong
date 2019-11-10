@@ -23,6 +23,14 @@ public:
         return _ringtone;
     }
 
+    double ringtoneVolume() const {
+        return _ringtoneVolume;
+    }
+
+    double callVolume() const {
+        return _callVolume;
+    }
+
     int motionSensorPin() const {
         return _motionSensorPin;
     }
@@ -39,6 +47,8 @@ private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
     std::string _ringtone;
+    double _ringtoneVolume = 1;
+    double _callVolume = 1;
     int _motionSensorPin = -1;
 
     std::string _logLevel;

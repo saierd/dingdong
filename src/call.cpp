@@ -121,18 +121,18 @@ public:
     Logger logger;
 };
 
-Call::Call(Instance const& target) {
+Call::Call(Settings const& self, Instance const& target) {
     impl = std::make_unique<Impl>(target);
 
     impl->receiverPort = globalPortManager.getPort();
     if (impl->receiverPort.isValid()) {
         impl->logger->info("Starting audio receiver on port {}", impl->receiverPort.get());
-        impl->receiver = std::make_unique<AudioReceiver>(impl->receiverPort.get());
+        impl->receiver = std::make_unique<AudioReceiver>(impl->receiverPort.get(), self.callVolume());
         impl->receiver->start();
     }
 }
 
-Call::Call(UUID const& id, Instance const& target) : Call(target) {
+Call::Call(Settings const& self, UUID const& id, Instance const& target) : Call(self, target) {
     impl->id = id;
 }
 

@@ -9,10 +9,11 @@ public:
     GstElement* decoder = nullptr;
     GstElement* convert = nullptr;
     GstElement* resample = nullptr;
+    GstElement* volume = nullptr;
     GstElement* sink = nullptr;
 };
 
-AudioPlayer::AudioPlayer() {
+AudioPlayer::AudioPlayer(double volume) {
     impl = std::make_unique<Impl>();
 
     impl->pipeline = gst_pipeline_new("audio_player");
@@ -20,10 +21,13 @@ AudioPlayer::AudioPlayer() {
     impl->decoder = gst_element_factory_make("wavparse", nullptr);
     impl->convert = gst_element_factory_make("audioconvert", nullptr);
     impl->resample = gst_element_factory_make("audioresample", nullptr);
+    impl->volume = gst_element_factory_make("volume", nullptr);
+    g_object_set(g_object_cast(impl->volume), "volume", volume, nullptr);
     impl->sink = gst_element_factory_make("pulsesink", nullptr);
     gst_bin_add_many(gst_bin_cast(impl->pipeline), impl->source, impl->decoder, impl->convert, impl->resample,
-                     impl->sink, nullptr);
-    gst_element_link_many(impl->source, impl->decoder, impl->convert, impl->resample, impl->sink, nullptr);
+                     impl->volume, impl->sink, nullptr);
+    gst_element_link_many(impl->source, impl->decoder, impl->convert, impl->resample, impl->volume, impl->sink,
+                          nullptr);
 }
 
 AudioPlayer::~AudioPlayer() {
