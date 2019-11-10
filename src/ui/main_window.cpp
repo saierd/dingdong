@@ -27,8 +27,8 @@ MainWindow::MainWindow(Screen& baseScreen) {
     show_all();
 
 #ifdef RASPBERRY_PI
-    // Hide the cursor when we have a touchscreen.
-    get_window()->set_cursor(Gdk::Cursor::create(Gdk::BLANK_CURSOR));
+    // Keep the window on top.
+    get_window()->set_keep_above();
 #endif
 
     pushScreen(baseScreen);

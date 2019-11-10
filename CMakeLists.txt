@@ -20,6 +20,8 @@ include(cmake/gtkmm.cmake)
 include(cmake/openssl.cmake)
 include(cmake/pulseaudio.cmake)
 include(cmake/uuid.cmake)
+include(cmake/x11.cmake)
+include(cmake/xfixes.cmake)
 
 find_package(Threads REQUIRED)
 
@@ -61,6 +63,7 @@ set(HEADERS
     src/ui/screens/key_screen.h
     src/ui/screens/key_input_screen.h
     src/ui/screens/main_screen.h
+    src/ui/x_helpers.h
     src/util/json.h
     src/util/logging.h)
 
@@ -95,6 +98,7 @@ set(SOURCES
     src/ui/screens/key_screen.cpp
     src/ui/screens/key_input_screen.cpp
     src/ui/screens/main_screen.cpp
+    src/ui/x_helpers.cpp
     src/util/logging.cpp)
 
 set(CONFIG_FILES
@@ -121,7 +125,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     pulseaudio
     procxx
     spdlog
-    Threads::Threads)
+    Threads::Threads
+    x11
+    xfixes)
 
 if (RASPBERRY_PI)
     target_compile_definitions(${PROJECT_NAME} PRIVATE RASPBERRY_PI)

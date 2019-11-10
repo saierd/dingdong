@@ -20,6 +20,8 @@ RUN dpkg --add-architecture armhf \
     libmount-dev:armhf \
     libpulse-dev:armhf \
     libssl-dev:armhf \
+    libx11-dev:armhf \
+    libxfixes-dev:armhf \
     uuid-dev:armhf \
     x11proto-dev \
 && rm -rf /var/lib/apt/lists/*

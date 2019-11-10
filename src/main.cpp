@@ -25,6 +25,7 @@
 #include "ui/screens/key_input_screen.h"
 #include "ui/screens/key_screen.h"
 #include "ui/screens/main_screen.h"
+#include "ui/x_helpers.h"
 
 std::string const settingsFile = "settings/settings.json";
 std::string const keyFile = "settings/keys.json";
@@ -245,6 +246,11 @@ int main(int argc, char** argv) {
             },
             std::chrono::duration_cast<std::chrono::milliseconds>(checkMotionSensorInterval).count());
     }
+
+#ifdef RASPBERRY_PI
+    // Hide the cursor on the touch screen.
+    hideCursorForApplication();
+#endif
 
     mainWindow.pushScreen(mainScreen);
     return app->run(mainWindow);
