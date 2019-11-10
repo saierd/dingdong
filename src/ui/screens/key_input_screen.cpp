@@ -12,6 +12,8 @@
 
 int const buttonSize = 95;
 
+std::chrono::seconds keyInputScreenTimeout(20);
+
 class KeyInputScreen::Impl {
 public:
     Impl(bool needConfirmation) : _needConfirmation(needConfirmation) {
@@ -108,5 +110,9 @@ std::vector<ScreenButton> KeyInputScreen::buttons() {
 }
 
 void KeyInputScreen::onShow() {
+    if (!impl->_needConfirmation) {
+        setTimeout(keyInputScreenTimeout);
+    }
+
     impl->clear();
 }

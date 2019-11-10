@@ -15,8 +15,10 @@ public:
     Gtk::Widget& widget() override;
     std::vector<ScreenButton> buttons() override;
 
+private:
     void onShow() override;
 
+public:
     sigc::signal<void, std::string> onKeyInput;
 
 private:

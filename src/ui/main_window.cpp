@@ -57,7 +57,7 @@ void MainWindow::pushScreen(Screen& screen) {
 void MainWindow::popScreen() {
     if (screenStack.size() <= 1) return;
 
-    screenStack.back()->onPop();
+    screenStack.back()->notifyPopped();
     screenStack.pop_back();
 
     showScreen(screenStack.back());
@@ -84,7 +84,7 @@ void MainWindow::showScreen(Screen* screen) {
     vbox.pack_start(screen->widget());
     currentScreen = screen;
     screen->mainWindow = this;
-    screen->onShow();
+    screen->notifyShown();
 
     currentScreenConnection = currentScreen->onButtonsChanged.connect([this]() { updateButtons(); });
     updateButtons();

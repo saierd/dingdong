@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <string>
 #include <vector>
@@ -32,6 +33,16 @@ public:
         return {};
     }
 
+    void notifyShown();
+    void notifyPopped();
+
+    virtual bool handleScannedKey(std::string const& /*unused*/) {
+        return false;
+    }
+
+    sigc::signal<void> onButtonsChanged;
+
+private:
     virtual void onShow(){
         // This method gets called after the screen got shown in the main window.
     };
@@ -40,13 +51,15 @@ public:
         // This method gets called once the screen got popped from the main window.
     }
 
-    virtual bool handleScannedKey(std::string const& /*unused*/) {
-        return false;
-    }
-
-    sigc::signal<void> onButtonsChanged;
+protected:
+    // Set the timeout for the current screen. When the timeout triggers and the screen is still visible, it will get
+    // popped automatically.
+    void setTimeout(std::chrono::milliseconds duration);
 
 protected:
     friend class MainWindow;
     MainWindow* mainWindow;
+
+private:
+    sigc::connection timeoutConnection;
 };

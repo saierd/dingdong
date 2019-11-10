@@ -93,6 +93,7 @@ set(SOURCES
     src/system/machine_id.cpp
     src/system/uuid.cpp
     src/ui/main_window.cpp
+    src/ui/screen.cpp
     src/ui/screens/action_screen.cpp
     src/ui/screens/call_screen.cpp
     src/ui/screens/key_screen.cpp
