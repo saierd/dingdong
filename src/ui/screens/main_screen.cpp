@@ -33,14 +33,14 @@ void MainScreen::updateInstances(std::vector<Instance> const& instances, std::ve
         }
 
         std::string buttonColor = colorDarkGrey;
-        std::string buttonIcon;
+        std::string buttonIcon = "/bell.svg";
         if (callToInstance) {
             if (callToInstance->isRunning) {
                 buttonColor = colorGreen;
                 buttonIcon = "/speaker.svg";
             } else {
                 buttonColor = colorYellow;
-                buttonIcon = "/bell.svg";
+                buttonIcon = "/bell_ring.svg";
             }
         }
 
