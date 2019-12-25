@@ -1,5 +1,6 @@
 #include "rfid_scanner.h"
 
+#include <atomic>
 #include <cctype>
 #include <thread>
 
@@ -13,17 +14,18 @@ std::string const rfidScannerCommand = "./scripts/read_rfid.py";
 
 class RfidScanner::Impl {
 public:
+    std::atomic<bool> stop = false;
     std::thread scanThread;
 };
 
 RfidScanner::RfidScanner() {
     impl = std::make_unique<Impl>();
-    impl->scanThread = std::thread([this]() {
+    impl->scanThread = std::thread([this, stop = &impl->stop]() {
         auto logger = categoryLogger(rfidLoggingCategory);
         procxx::process scanProcess(rfidScannerCommand);
         scanProcess.exec();
 
-        while (true) {
+        while (!stop->load()) {
             std::string key;
             std::getline(scanProcess.output(), key);
             if (!key.empty()) {
@@ -52,4 +54,8 @@ RfidScanner::RfidScanner() {
     });
 }
 
-RfidScanner::~RfidScanner() = default;
+RfidScanner::~RfidScanner() {
+    if (impl->scanThread.joinable()) {
+        impl->scanThread.join();
+    }
+}

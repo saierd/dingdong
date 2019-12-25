@@ -1,5 +1,6 @@
 #include "discovery.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <map>
@@ -79,7 +80,7 @@ private:
 };
 
 // Periodically broadcasts discovery messages on all available interfaces.
-void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) {
+void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval, std::atomic<bool> const* stop) {
     auto logger = categoryLogger(discoveryLogCategory);
 
     std::vector<NetworkInterface> interfaces;
@@ -106,7 +107,7 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
     };
 
     auto nextInterval = std::chrono::steady_clock::now() + interval;
-    while (true) {
+    while (!stop->load()) {
         try {
             updateInterfaces();
 
@@ -126,13 +127,13 @@ void sendDiscoveryMessages(Instance const& self, std::chrono::seconds interval) 
 
 using DiscoveryCallback = std::function<void(Instance)>;
 
-void listenForDiscoveries(DiscoveryCallback const& callback) {
+void listenForDiscoveries(DiscoveryCallback const& callback, std::atomic<bool> const* stop) {
     auto logger = categoryLogger(discoveryLogCategory);
 
     UdpSocket socket;
     socket.bind(discoveryPort, true);
 
-    while (true) {
+    while (!stop->load()) {
         auto data = socket.receive();
 
         auto stringFromData = [&](size_t offset, size_t size) -> std::string_view {
@@ -166,6 +167,7 @@ public:
     bool forceInstancesChangedSignal = false;
     std::vector<InstancesChangedCallback> callbacks;
 
+    std::atomic<bool> stopThreads = false;
     std::thread discoverySenderThread;
     std::thread discoveryReceiverThread;
     std::thread cleanupThread;
@@ -257,12 +259,14 @@ public:
 InstanceDiscovery::InstanceDiscovery(Instance const& self) {
     impl = std::make_unique<Impl>(self);
 
-    impl->discoverySenderThread = std::thread([this]() { sendDiscoveryMessages(impl->self, discoverySendInterval); });
-    impl->discoveryReceiverThread = std::thread(
-        [this]() { listenForDiscoveries([this](Instance const& instance) { impl->addInstance(instance); }); });
-    impl->cleanupThread = std::thread([this]() {
+    impl->discoverySenderThread = std::thread(
+        [this, stop = &impl->stopThreads]() { sendDiscoveryMessages(impl->self, discoverySendInterval, stop); });
+    impl->discoveryReceiverThread = std::thread([this, stop = &impl->stopThreads]() {
+        listenForDiscoveries([this](Instance const& instance) { impl->addInstance(instance); }, stop);
+    });
+    impl->cleanupThread = std::thread([this, stop = &impl->stopThreads]() {
         auto nextInterval = std::chrono::steady_clock::now() + discoveryCleanupInterval;
-        while (true) {
+        while (!stop->load()) {
             impl->cleanup();
             std::this_thread::sleep_until(nextInterval);
             nextInterval += discoveryCleanupInterval;
@@ -270,7 +274,19 @@ InstanceDiscovery::InstanceDiscovery(Instance const& self) {
     });
 }
 
-InstanceDiscovery::~InstanceDiscovery() = default;
+InstanceDiscovery::~InstanceDiscovery() {
+    impl->stopThreads = true;
+
+    if (impl->discoverySenderThread.joinable()) {
+        impl->discoverySenderThread.join();
+    }
+    if (impl->discoveryReceiverThread.joinable()) {
+        impl->discoveryReceiverThread.join();
+    }
+    if (impl->cleanupThread.joinable()) {
+        impl->cleanupThread.join();
+    }
+}
 
 void InstanceDiscovery::onInstancesChanged(InstancesChangedCallback const& callback) {
     std::lock_guard<std::mutex> lock(impl->mutex);

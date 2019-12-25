@@ -1,6 +1,7 @@
 #include "call_protocol.h"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <map>
 #include <mutex>
@@ -168,23 +169,39 @@ public:
             httpServer.listen("0.0.0.0", protocolPort);
         });
 
-        pingThread = std::thread([this]() {
+        pingThread = std::thread([this, stop = &stopThreads]() {
             auto nextInterval = std::chrono::steady_clock::now() + callPingInterval;
-            while (true) {
+            while (!stop->load()) {
                 pingCalls();
                 std::this_thread::sleep_until(nextInterval);
                 nextInterval += callPingInterval;
             }
         });
 
-        cleanupThread = std::thread([this]() {
+        cleanupThread = std::thread([this, stop = &stopThreads]() {
             auto nextInterval = std::chrono::steady_clock::now() + callCleanupInterval;
-            while (true) {
+            while (!stop->load()) {
                 cleanup();
                 std::this_thread::sleep_until(nextInterval);
                 nextInterval += callCleanupInterval;
             }
         });
+    }
+
+    ~Impl() {
+        stopThreads = true;
+
+        if (cleanupThread.joinable()) {
+            cleanupThread.join();
+        }
+        if (pingThread.joinable()) {
+            pingThread.join();
+        }
+
+        httpServer.stop();
+        if (httpServerThread.joinable()) {
+            httpServerThread.join();
+        }
     }
 
     Call& createIncomingCall(UUID const& id, Instance const& instance) {
@@ -403,6 +420,7 @@ public:
     httplib::Server httpServer;
     std::thread httpServerThread;
 
+    std::atomic<bool> stopThreads = false;
     std::thread pingThread;
     std::thread cleanupThread;
 };
