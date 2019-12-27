@@ -34,6 +34,7 @@ set(HEADERS
     src/access_control/actions/gpio.h
     src/access_control/key.h
     src/access_control/rfid_scanner.h
+    src/audio_manager.h
     src/audio_player.h
     src/call.h
     src/call_protocol.h
@@ -73,6 +74,7 @@ set(SOURCES
     src/access_control/actions/gpio.cpp
     src/access_control/key.cpp
     src/access_control/rfid_scanner.cpp
+    src/audio_manager.cpp
     src/audio_player.cpp
     src/call.cpp
     src/call_protocol.cpp

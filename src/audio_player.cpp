@@ -44,3 +44,7 @@ void AudioPlayer::play(std::string const& file) {
         gst_element_set_state(impl->pipeline, GST_STATE_PLAYING);
     }
 }
+
+void AudioPlayer::stop() {
+    gst_element_set_state(impl->pipeline, GST_STATE_READY);
+}

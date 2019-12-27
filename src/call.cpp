@@ -3,6 +3,7 @@
 #include <map>
 #include <mutex>
 
+#include "audio_manager.h"
 #include "stream/audio.h"
 #include "util/logging.h"
 
@@ -102,7 +103,8 @@ std::string const callLogCategory = "call";
 
 class Call::Impl {
 public:
-    Impl(Instance _target) : target(std::move(_target)) {
+    Impl(Instance _target, std::shared_ptr<AudioManager> _audioManager)
+        : target(std::move(_target)), audioManager(std::move(_audioManager)) {
         logger = categoryLogger(callLogCategory);
     }
 
@@ -111,6 +113,8 @@ public:
 
     bool invalid = false;
     bool muted = false;
+
+    std::shared_ptr<AudioManager> audioManager;
 
     std::unique_ptr<AudioSender> sender;
     int senderPort = -1;
@@ -121,8 +125,8 @@ public:
     Logger logger;
 };
 
-Call::Call(Settings const& self, Instance const& target) {
-    impl = std::make_unique<Impl>(target);
+Call::Call(Settings const& self, Instance const& target, std::shared_ptr<AudioManager> audioManager) {
+    impl = std::make_unique<Impl>(target, std::move(audioManager));
 
     impl->receiverPort = globalPortManager.getPort();
     if (impl->receiverPort.isValid()) {
@@ -132,11 +136,16 @@ Call::Call(Settings const& self, Instance const& target) {
     }
 }
 
-Call::Call(Settings const& self, UUID const& id, Instance const& target) : Call(self, target) {
+Call::Call(Settings const& self, UUID const& id, Instance const& target, std::shared_ptr<AudioManager> audioManager)
+    : Call(self, target, std::move(audioManager)) {
     impl->id = id;
 }
 
-Call::~Call() = default;  // Stops automatically in the destructor of the streams.
+Call::~Call() {
+    if (impl) {
+        stop();
+    }
+}
 
 Call::Call(Call&& other) noexcept {
     impl = std::move(other.impl);
@@ -168,6 +177,8 @@ void Call::connect(int senderPort) {
 }
 
 void Call::start() {
+    impl->audioManager->startCall();
+
     if (impl->sender) {
         impl->logger->info("Starting sender for call {}", impl->id.toString());
         impl->sender->start();
@@ -176,6 +187,8 @@ void Call::start() {
 }
 
 void Call::stop() {
+    impl->audioManager->stopCall();
+
     if (impl->sender) {
         impl->logger->info("Stopping sender for call {}", impl->id.toString());
         impl->sender->stop();

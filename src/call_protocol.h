@@ -12,6 +12,8 @@
 #include "settings.h"
 #include "system/uuid.h"
 
+class AudioManager;
+
 struct CallInfo {
     UUID id;
     MachineId targetId;
@@ -25,7 +27,7 @@ struct CallInfo {
 
 class CallProtocol {
 public:
-    CallProtocol(Settings const& self, InstanceDiscovery const& instances);
+    CallProtocol(Settings const& self, InstanceDiscovery const& instances, std::shared_ptr<AudioManager> audioManager);
     ~CallProtocol();
 
     void requestCall(Instance const& target);

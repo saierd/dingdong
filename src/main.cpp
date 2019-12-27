@@ -5,6 +5,7 @@
 
 #include <procxx/process.h>
 
+#include "audio_manager.h"
 #include "call_protocol.h"
 #include "discovery.h"
 #include "gstreamer/gstreamer.h"
@@ -79,6 +80,7 @@ int main(int argc, char** argv) {
     }
 
     InstanceDiscovery discovery(self);
+    auto audioManager = std::make_shared<AudioManager>(self);
 
     ActionScreen actionScreen;
     CallScreen callScreen;
@@ -163,7 +165,7 @@ int main(int argc, char** argv) {
     });
 #endif
 
-    CallProtocol calls(self, discovery);
+    CallProtocol calls(self, discovery, audioManager);
     mainScreen.onCall.connect([&calls](Instance const& instance) {
         log()->info("Call {} ({})", instance.id().toString(), instance.name());
         calls.requestCall(instance);

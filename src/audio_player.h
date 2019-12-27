@@ -9,6 +9,7 @@ public:
     ~AudioPlayer();
 
     void play(std::string const& file);
+    void stop();
 
 private:
     class Impl;

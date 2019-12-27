@@ -10,7 +10,7 @@
 
 #include "httplib.h"
 
-#include "audio_player.h"
+#include "audio_manager.h"
 #include "call.h"
 #include "util/json.h"
 #include "util/logging.h"
@@ -32,8 +32,9 @@ httplib::Client clientForTarget(Instance const& target) {
 
 class CallProtocol::Impl {
 public:
-    Impl(CallProtocol* _protocol, Settings _self, InstanceDiscovery const& _instances)
-        : protocol(_protocol), self(std::move(_self)), instances(_instances), ringtonePlayer(self.ringtoneVolume()) {
+    Impl(CallProtocol* _protocol, Settings _self, InstanceDiscovery const& _instances,
+         std::shared_ptr<AudioManager> _audioManager)
+        : protocol(_protocol), self(std::move(_self)), instances(_instances), audioManager(std::move(_audioManager)) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -205,7 +206,7 @@ public:
     }
 
     Call& createIncomingCall(UUID const& id, Instance const& instance) {
-        incomingCalls.emplace_back(self, id, instance);
+        incomingCalls.emplace_back(self, id, instance, audioManager);
 
         auto& newCall = incomingCalls.back();
         callLastActivity[newCall.id().toString()] = std::chrono::steady_clock::now();
@@ -215,7 +216,7 @@ public:
     }
 
     Call& createOutgoingCall(Instance const& target) {
-        outgoingCalls.emplace_back(self, target);
+        outgoingCalls.emplace_back(self, target, audioManager);
 
         auto& newCall = outgoingCalls.back();
         logger->debug("Created call with id {}", newCall.id().toString());
@@ -388,7 +389,7 @@ public:
     }
 
     void playRingtone() {
-        ringtonePlayer.play(self.ringtone());
+        audioManager->playRingtone(self.ringtone());
     }
 
 public:
@@ -399,7 +400,7 @@ public:
     Settings self;
     InstanceDiscovery const& instances;
 
-    AudioPlayer ringtonePlayer;
+    std::shared_ptr<AudioManager> audioManager;
 
     std::mutex mutex;
 
@@ -425,8 +426,9 @@ public:
     std::thread cleanupThread;
 };
 
-CallProtocol::CallProtocol(Settings const& self, InstanceDiscovery const& instances) {
-    impl = std::make_unique<Impl>(this, self, instances);
+CallProtocol::CallProtocol(Settings const& self, InstanceDiscovery const& instances,
+                           std::shared_ptr<AudioManager> audioManager) {
+    impl = std::make_unique<Impl>(this, self, instances, std::move(audioManager));
 }
 
 CallProtocol::~CallProtocol() = default;

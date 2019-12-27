@@ -6,12 +6,14 @@
 #include "settings.h"
 #include "system/uuid.h"
 
+class AudioManager;
+
 class Call {
 public:
     // Create a call. Note that this will not send anything yet, but it will
     // start the receiver thread on our side on a free port.
-    Call(Settings const& self, UUID const& id, Instance const& target);
-    Call(Settings const& self, Instance const& target);
+    Call(Settings const& self, UUID const& id, Instance const& target, std::shared_ptr<AudioManager> audioManager);
+    Call(Settings const& self, Instance const& target, std::shared_ptr<AudioManager> audioManager);
     ~Call();
 
     Call(Call const&) = delete;
