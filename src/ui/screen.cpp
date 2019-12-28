@@ -4,11 +4,11 @@
 
 #include "main_window.h"
 
-void Screen::notifyShown() {
+void BaseScreen::notifyShown() {
     onShow();
 }
 
-void Screen::notifyPopped() {
+void BaseScreen::notifyPopped() {
     if (timeoutConnection.connected()) {
         timeoutConnection.disconnect();
     }
@@ -16,7 +16,7 @@ void Screen::notifyPopped() {
     onPop();
 }
 
-void Screen::setTimeout(std::chrono::milliseconds duration) {
+void BaseScreen::setTimeout(std::chrono::milliseconds duration) {
     timeoutConnection = Glib::signal_timeout().connect(
         [this]() -> bool {
             if (mainWindow && mainWindow->isCurrentScreen(*this)) {
