@@ -1,6 +1,7 @@
 #include "call_screen.h"
 
 #include <gdk/gdkx.h>
+#include <gtkmm/aspectframe.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/drawingarea.h>
@@ -12,16 +13,14 @@
 #include "ui/constants.h"
 #include "ui/gtk_helpers.h"
 
-// typedef struct _GdkWindow GdkWindow;
-// unsigned long gdk_x11_window_get_xid(GdkWindow* window);
-
 std::string const acceptButtonColor = colorGreen;
 std::string const cancelButtonColor = colorRed;
 std::string const muteButtonColor = colorLightGrey;
 std::string const unmuteButtonColor = colorLightRed;
 
 int const callButtonSpacing = defaultSpacing;
-int const muteButtonWidth = 300;
+int const muteButtonWidth = 120;
+int const videoAreaWidth = 300;
 
 class CallWidget {
 public:
@@ -29,20 +28,23 @@ public:
         muted = call.isMuted;
         sendingVideo = call.sendingVideo;
 
+        int const spacing = defaultSpacing / 2;
+
+        hbox.set_spacing(spacing);
         vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-        vbox.set_spacing(10);
-        hbox.set_spacing(10);
+        vbox.set_spacing(spacing);
+        buttonsHBox.set_spacing(spacing);
 
         vbox.pack_start(label);
-        vbox.pack_start(hbox);
-        hbox.set_spacing(callButtonSpacing);
-        hbox.pack_start(accept);
-        hbox.pack_start(cancel);
+        vbox.pack_start(buttonsHBox);
+        buttonsHBox.set_spacing(callButtonSpacing);
+        buttonsHBox.pack_start(accept);
+        buttonsHBox.pack_start(cancel);
         if (call.isRunning) {
-            hbox.pack_start(mute, false, true);
+            buttonsHBox.pack_start(mute, false, true);
             mute.set_size_request(muteButtonWidth);
 
-            hbox.pack_start(video, false, true);
+            buttonsHBox.pack_start(video, false, true);
             video.set_size_request(muteButtonWidth);
         }
 
@@ -86,20 +88,27 @@ public:
             actionsHBox.pack_start(actionButtons.back());
         }
 
+        hbox.pack_start(vbox);
+
         if (call.remoteSendsVideo) {
-            vbox.pack_start(videoArea, true, true);
+            videoAspectFrame.add(videoArea);
+            videoAspectFrame.set_shadow_type(Gtk::SHADOW_NONE);
+            videoAspectFrame.set(0.5, 0.5, 4. / 3., false);
+
+            hbox.pack_start(videoAspectFrame, true, true);
+            videoArea.set_size_request(videoAreaWidth);
             videoArea.signal_realize().connect([videoReceiver = call.videoReceiver, &area = videoArea]() {
                 guintptr xid = gdk_x11_window_get_xid(area.get_window()->gobj());
                 videoReceiver->setWindowHandle(xid);
             });
         }
 
-        vbox.show_all();
+        hbox.show_all();
         accept.set_visible(call.canBeAccepted);
     }
 
     Gtk::Widget& widget() {
-        return vbox;
+        return hbox;
     }
 
     sigc::signal<void, UUID const&> onAccept;
@@ -123,9 +132,9 @@ private:
         styleButton(video);
 
         if (sendingVideo) {
-            video.set_label("SENDING VIDEO");
+            video.set_label("V");
         } else {
-            video.set_label("NOT SENDING VIDEO");
+            video.set_label("NV");
         }
     }
 
@@ -133,11 +142,12 @@ private:
     bool muted = false;
     bool sendingVideo = false;
 
-    Gtk::Box vbox, hbox, actionsHBox;
+    Gtk::Box hbox, vbox, buttonsHBox, actionsHBox;
     Gtk::Button accept, cancel, mute, video;
     Gtk::Image acceptIcon, cancelIcon, muteIcon, unmuteIcon;
     Gtk::Label label;
 
+    Gtk::AspectFrame videoAspectFrame;
     Gtk::DrawingArea videoArea;
 
     std::vector<Gtk::Button> actionButtons;

@@ -17,11 +17,11 @@ std::string h264Decoder = "decodebin";
 VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height) {
     std::string pipelineSpecification = fmt::format(
         "v4l2src ! "
-        "video/x-raw,width={},height={} ! "
+        "video/x-raw,width={},height={},framerate=10/1 ! "
         "videoscale ! "
         "videoconvert ! "
         "{} ! "
-        "rtph264pay ! "
+        "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
         width, height, h264Encoder, targetHost.toString(), targetPort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
@@ -42,7 +42,7 @@ bool VideoSender::isRunning() const {
 VideoReceiver::VideoReceiver(int sourcePort) {
     std::string pipelineSpecification = fmt::format(
         "udpsrc port={} caps=\"application/x-rtp\" ! "
-        "rtpjitterbuffer latency=100 drop-on-latency=true ! "
+        "rtpjitterbuffer ! "
         "rtph264depay ! "
         "h264parse ! "
         "{} ! "
