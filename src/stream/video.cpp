@@ -5,25 +5,33 @@
 #include <gst/video/videooverlay.h>
 #include "gstreamer/gstreamer_helpers.h"
 
+// omxh264dec does not work on Raspberry Pi 4...
+// See https://www.raspberrypi.org/forums/viewtopic.php?t=252060#p1538803
+
 #ifdef RASPBERRY_PI
+std::string const videoSource = "v4l2src";
+
 // Use hardware accelerated encoders on the Raspberry Pi.
-std::string h264Encoder = "omxh264enc";
-std::string h264Decoder = "omxh264dec";
+std::string const h264Encoder = "omxh264enc";
+std::string const h264Decoder = "avdec_h264";
 #else
-std::string h264Encoder = "x264enc";
-std::string h264Decoder = "decodebin";
+std::string const videoSource = "videotestsrc";
+
+std::string const h264Encoder = "x264enc";
+std::string const h264Decoder = "decodebin";
 #endif
 
-VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height) {
+VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height, int framerate) {
     std::string pipelineSpecification = fmt::format(
-        "v4l2src ! "
-        "video/x-raw,width={},height={},framerate=10/1 ! "
+        "{} ! "
+        "video/x-raw,width={},height={},framerate={}/1 ! "
+        "videorate ! "
         "videoscale ! "
         "videoconvert ! "
         "{} ! "
         "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
-        width, height, h264Encoder, targetHost.toString(), targetPort);
+        videoSource, width, height, framerate, h264Encoder, targetHost.toString(), targetPort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
 
