@@ -22,11 +22,14 @@ static std::mutex gpioOutputMutex;
 #endif
 
 #ifdef RASPBERRY_PI
-GpioInputPin::GpioInputPin(unsigned int pin) : _pin(pin) {
+GpioInputPin::GpioInputPin(unsigned int pin, bool enablePullUp) : _pin(pin) {
     runGpioCommand("mode", std::to_string(_pin), "input").exec();
+    if (enablePullUp) {
+        runGpioCommand("mode", std::to_string(_pin), "up").exec();
+    }
 }
 #else
-GpioInputPin::GpioInputPin(unsigned int /*unused*/) {}
+GpioInputPin::GpioInputPin(unsigned int /*unused*/, bool /*unused*/) {}
 #endif
 
 bool GpioInputPin::read() const {

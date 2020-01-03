@@ -38,6 +38,7 @@ std::string const manageKeysActionCaption = "Manage Keys";
 
 std::chrono::seconds const checkScreenInterval(1);
 std::chrono::milliseconds const checkMotionSensorInterval(200);
+std::chrono::milliseconds const checkRingButtonInterval(100);
 
 int main(int argc, char** argv) {
     initializeGStreamer(argc, argv);
@@ -247,6 +248,21 @@ int main(int argc, char** argv) {
                 return true;
             },
             std::chrono::duration_cast<std::chrono::milliseconds>(checkMotionSensorInterval).count());
+    }
+
+    if (self.ringButtonPin() >= 0) {
+        // Check the ring button periodically and play a ringtone if it becomes active.
+        Glib::signal_timeout().connect(
+            [ringButtonPin = GpioInputPin(self.ringButtonPin(), true), buttonPressedLastTime = false, audioManager,
+             ringtone = self.ringButtonRingtone()]() mutable -> bool {
+                bool buttonPressed = !ringButtonPin.read();
+                if (!buttonPressedLastTime && buttonPressed) {
+                    audioManager->playRingtone(ringtone);
+                }
+                buttonPressedLastTime = buttonPressed;
+                return true;
+            },
+            std::chrono::duration_cast<std::chrono::milliseconds>(checkRingButtonInterval).count());
     }
 
 #ifdef RASPBERRY_PI

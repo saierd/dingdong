@@ -23,6 +23,10 @@ Settings::Settings(std::string const& settingsFile) : Instance(getMachineId(), "
         }
         getValueFromJson(_ringtone, data, "ringtone");
         getValueFromJson(_ringtoneVolume, data, "ringtoneVolume");
+        if (data.count("ringButton") > 0) {
+            getValueFromJson(_ringButtonPin, data["ringButton"], "pin");
+            getValueFromJson(_ringButtonRingtone, data["ringButton"], "ringtone");
+        }
         getValueFromJson(_callVolume, data, "callVolume");
         getValueFromJson(_motionSensorPin, data, "motionSensorPin");
 

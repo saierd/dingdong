@@ -3,6 +3,10 @@
     "instanceOrder": 0,
     "showCallScreen": true,
     "autoAccept": false,
+    "ringButton": {
+        "pin": -1,
+        "ringtone": ""
+    },
     "ringtone": "",
     "ringtoneVolume": 1,
     "callVolume": 1,

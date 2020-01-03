@@ -27,6 +27,14 @@ public:
         return _ringtoneVolume;
     }
 
+    int ringButtonPin() const {
+        return _ringButtonPin;
+    }
+
+    std::string ringButtonRingtone() const {
+        return _ringButtonRingtone;
+    }
+
     double callVolume() const {
         return _callVolume;
     }
@@ -48,6 +56,8 @@ private:
     bool _autoAccept = false;
     std::string _ringtone;
     double _ringtoneVolume = 1;
+    int _ringButtonPin = -1;
+    std::string _ringButtonRingtone;
     double _callVolume = 1;
     int _motionSensorPin = -1;
 

@@ -7,7 +7,7 @@
 
 class GpioInputPin {
 public:
-    GpioInputPin(unsigned int pin);
+    GpioInputPin(unsigned int pin, bool enablePullUp = false);
 
     bool read() const;
 
