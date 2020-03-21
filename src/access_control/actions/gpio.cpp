@@ -83,3 +83,9 @@ int GpioAction::order() const {
 bool GpioAction::allowRemoteExecution() const {
     return impl->allowRemoteExecution;
 }
+
+bool GpioAction::allowAdditionalAction() const {
+    // Multiple GPIO actions can be triggered at the same time. Note that the action and the GpioOutputPin will take
+    // care of locking and executing the actions sequentially if necessary.
+    return true;
+}

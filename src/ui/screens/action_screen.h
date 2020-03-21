@@ -23,7 +23,9 @@ private:
 
 private:
     Gtk::Grid buttonGrid;
-    std::vector<Gtk::Button> actionButtons;
+    std::vector<std::shared_ptr<Gtk::Button>> actionButtons;
 
     sigc::connection timeoutConnection;
+
+    bool didTriggerScreenPop = false;
 };

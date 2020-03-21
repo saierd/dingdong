@@ -20,6 +20,7 @@ public:
     int order() const override;
 
     bool allowRemoteExecution() const override;
+    bool allowAdditionalAction() const override;
 
 private:
     class Impl;
