@@ -16,9 +16,9 @@
 
 int const discoveryPort = 40001;
 
-std::chrono::seconds const discoverySendInterval(2);
+std::chrono::seconds const discoverySendInterval(1);
 std::chrono::seconds const discoveryCleanupInterval(10);
-std::chrono::seconds const discoveryTimeout(10);
+std::chrono::seconds const discoveryTimeout(60);
 
 // Discovery broadcasts are a UDP packet consisting of this ASCII string followed by data in the form of ASCII encoded
 // JSON. This allows reading the messages in Wireshark as well as extending them easily.
