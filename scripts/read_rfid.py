@@ -10,7 +10,7 @@ import time
 
 from pirc522 import RFID
 
-duplicate_tag_timeout = 5  # Seconds.
+duplicate_tag_timeout = 3  # Seconds.
 
 reader = RFID()
 
