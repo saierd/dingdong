@@ -12,15 +12,15 @@
 
 class MainWindow : public Gtk::Window {
 public:
-    MainWindow(Screen& baseScreen);
+    MainWindow(BaseScreen& baseScreen);
 
     void addPermanentButton(ScreenButton button, std::function<bool()> show);
     void addPermanentButton(ScreenButton button);
     void clearPermanentButtons();
 
-    void pushScreen(Screen& screen);
+    void pushScreen(BaseScreen& screen);
     void popScreen();
-    bool isCurrentScreen(Screen const& screen) const;
+    bool isCurrentScreen(BaseScreen const& screen) const;
 
     // Notify the current screen about a scanned key. Returns true if the screen handled the key.
     bool handleScannedKey(std::string const& key) const;
@@ -28,12 +28,12 @@ public:
     sigc::signal<void> onScreenChanged;
 
 private:
-    void showScreen(Screen* screen);
+    void showScreen(BaseScreen* screen);
     void updateButtons();
 
 private:
-    Screen* currentScreen = nullptr;
-    std::vector<Screen*> screenStack;
+    BaseScreen* currentScreen = nullptr;
+    std::vector<BaseScreen*> screenStack;
 
     // Connection to signals of the current screen.
     sigc::connection currentScreenConnection;

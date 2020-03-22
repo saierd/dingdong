@@ -8,7 +8,7 @@ int const mainWindowPadding = largePadding;
 
 int const buttonMinimumWidth = 100;
 
-MainWindow::MainWindow(Screen& baseScreen) {
+MainWindow::MainWindow(BaseScreen& baseScreen) {
     set_border_width(mainWindowPadding);
     fullscreen();
 
@@ -48,7 +48,7 @@ void MainWindow::clearPermanentButtons() {
     updateButtons();
 }
 
-void MainWindow::pushScreen(Screen& screen) {
+void MainWindow::pushScreen(BaseScreen& screen) {
     screenStack.push_back(&screen);
     showScreen(screenStack.back());
     onScreenChanged();
@@ -64,7 +64,7 @@ void MainWindow::popScreen() {
     onScreenChanged();
 }
 
-bool MainWindow::isCurrentScreen(Screen const& screen) const {
+bool MainWindow::isCurrentScreen(BaseScreen const& screen) const {
     return &screen == currentScreen;
 }
 
@@ -73,7 +73,7 @@ bool MainWindow::handleScannedKey(std::string const& key) const {
     return currentScreen->handleScannedKey(key);
 }
 
-void MainWindow::showScreen(Screen* screen) {
+void MainWindow::showScreen(BaseScreen* screen) {
     if (currentScreen == screen) return;
 
     if (currentScreen != nullptr) {

@@ -9,7 +9,7 @@
 #include "access_control/action.h"
 #include "ui/screen.h"
 
-class ActionScreen : public Screen {
+class ActionScreen : public BaseScreen {
 public:
     ActionScreen();
 
