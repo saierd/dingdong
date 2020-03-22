@@ -3,7 +3,7 @@ A doorbell and intercom solution running on Raspberry Pi.
 ## Features
 
 * Ringing the door from another instance or with a switch.
-* Intercom system.
+* Intercom system with audio and video streaming.
 * Touchscreen interface.
 * Access control using numeric keys and RFID tags.
 * Using a PIR motion sensor for controlling the screen saver.

@@ -1,7 +1,6 @@
 #include "audio.h"
 
-#include "gstreamer/gstreamer_helpers.h"
-#include "util/logging.h"
+#include <spdlog/fmt/fmt.h>
 
 AudioSender::AudioSender(IpAddress const& targetHost, int targetPort) {
     std::string pipelineSpecification = fmt::format(

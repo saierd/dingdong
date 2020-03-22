@@ -17,6 +17,7 @@ public:
     sigc::signal<void, UUID const&> onAccept;
     sigc::signal<void, UUID const&> onCancel;
     sigc::signal<void, UUID const&, bool> onMute;
+    sigc::signal<void, UUID const&, bool> onEnableVideo;
     sigc::signal<void, UUID const&, std::string const&> onRequestAction;
 
 private:

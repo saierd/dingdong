@@ -31,3 +31,7 @@ void Pipeline::stop() {
 bool Pipeline::isRunning() const {
     return running;
 }
+
+GstElement* Pipeline::getElementByName(const std::string& name) {
+    return gst_bin_get_by_name(gst_bin_cast(pipeline), name.c_str());
+}
