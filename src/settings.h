@@ -51,6 +51,14 @@ public:
         return _actions;
     }
 
+    std::string videoDevice() const {
+        return _videoDevice;
+    }
+
+    bool hasVideoDevice() const {
+        return !_videoDevice.empty();
+    }
+
 private:
     bool _showCallScreen = true;
     bool _autoAccept = false;
@@ -60,6 +68,7 @@ private:
     std::string _ringButtonRingtone;
     double _callVolume = 1;
     int _motionSensorPin = -1;
+    std::string _videoDevice;
 
     std::string _logLevel;
 

@@ -42,11 +42,13 @@ public:
             UUID id(data["id"].get<std::string>());
             MachineId machine(data["machine"].get<std::string>());
             int senderPort = data["port"];
+            int videoSenderPort = data["videoPort"];
 
             bool foundInstance = false;
             std::optional<int> receiverPort;
+            std::optional<int> videoReceiverPort;
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->info("Call request from {}, call id {}", machine.toString(), id.toString());
 
                 playRingtone();
@@ -55,13 +57,16 @@ public:
                     if (instance.id() == machine) {
                         auto& newCall = createIncomingCall(id, instance);
                         newCall.connect(senderPort);
+                        newCall.connectVideo(videoSenderPort);
 
                         Json result;
                         result["id"] = newCall.id().toString();
                         result["port"] = newCall.receiverPort();
+                        result["videoPort"] = newCall.videoReceiverPort();
                         response.set_content(result.dump(), jsonContentType);
 
                         receiverPort = newCall.receiverPort();
+                        videoReceiverPort = newCall.videoReceiverPort();
                         foundInstance = true;
 
                         break;
@@ -77,7 +82,8 @@ public:
             }
 
             if (self.autoAccept()) {
-                protocol->acceptCall(id, receiverPort);
+                protocol->acceptCall(id, receiverPort, videoReceiverPort);
+                protocol->enableVideoForCall(id);
             }
         });
         httpServer.Post("/call/accept", [this](httplib::Request const& request, httplib::Response& response) {
@@ -85,7 +91,7 @@ public:
             UUID id(data["id"].get<std::string>());
 
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->info("Received accept request for {}", id.toString());
 
                 auto call = outgoingCallById(id);
@@ -102,6 +108,11 @@ public:
                 if (data.count("port")) {
                     int port = data["port"];
                     call->connect(port);
+                }
+
+                if (data.count("videoPort")) {
+                    int port = data["videoPort"];
+                    call->connectVideo(port);
                 }
 
                 call->start();
@@ -135,7 +146,7 @@ public:
             UUID id(data["id"].get<std::string>());
 
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->trace("Received ping for {}", id.toString());
                 callLastActivity[id.toString()] = std::chrono::steady_clock::now();
             }
@@ -144,9 +155,33 @@ public:
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
         });
+        httpServer.Post("/call/enable_video", [this](httplib::Request const& request, httplib::Response& response) {
+            auto data = Json::parse(request.body);
+            UUID id(data["id"].get<std::string>());
+            bool enable = data["enable"];
+
+            {
+                std::lock_guard<std::recursive_mutex> lock(mutex);
+                logger->trace("Remote set video enabled for call {} to {}", id.toString(), enable);
+
+                auto call = outgoingCallById(id);
+                if (call == nullptr) {
+                    call = incomingCallById(id);
+                }
+
+                if (call) {
+                    call->setRemoteSendsVideo(enable);
+                    protocol->onCallsChanged();
+                }
+            }
+
+            Json result;
+            result["status"] = "ok";
+            response.set_content(result.dump(), jsonContentType);
+        });
         httpServer.Get("/ring", [this](httplib::Request const& /*unused*/, httplib::Response& response) {
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                std::lock_guard<std::recursive_mutex> lock(mutex);
                 playRingtone();
             }
 
@@ -263,7 +298,7 @@ public:
     // Note that for the degenerate case of calling ourselves, this function
     // invalidates both the incoming and outgoing instances of the call.
     bool invalidateCall(UUID id, Instance* target = nullptr, bool needLock = true) {
-        std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
+        std::unique_lock<std::recursive_mutex> lock(mutex, std::defer_lock);
         if (needLock) {
             lock.lock();
         }
@@ -294,7 +329,7 @@ public:
         // to lock as well).
         std::vector<std::pair<Instance, UUID>> callsToPing;
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            std::lock_guard<std::recursive_mutex> lock(mutex);
             for (auto const& call : incomingCalls) {
                 if (call.isInvalid()) continue;
                 callsToPing.emplace_back(call.target(), call.id());
@@ -316,7 +351,7 @@ public:
 
     // Remove canceled and timed out calls.
     void cleanup() {
-        std::unique_lock<std::mutex> lock(mutex);
+        std::unique_lock<std::recursive_mutex> lock(mutex);
 
         auto now = std::chrono::steady_clock::now();
         size_t previousCallCount = incomingCalls.size() + outgoingCalls.size();
@@ -402,7 +437,7 @@ public:
 
     std::shared_ptr<AudioManager> audioManager;
 
-    std::mutex mutex;
+    std::recursive_mutex mutex;
 
     // We store incoming and outgoing calls separately, so that we can call
     // ourselves for debugging purposes (in which case we will have both an
@@ -439,7 +474,7 @@ void CallProtocol::requestCall(Instance const& target) {
     bool alreadyCalled = false;
     bool callAlreadyRunning = false;
     {
-        std::lock_guard<std::mutex> lock(impl->mutex);
+        std::lock_guard<std::recursive_mutex> lock(impl->mutex);
         for (auto const& call : impl->outgoingCalls) {
             if (call.target().id() == target.id() && !call.isInvalid()) {
                 alreadyCalled = true;
@@ -470,12 +505,13 @@ void CallProtocol::requestCall(Instance const& target) {
     Json data;
     UUID newCallId;
     {
-        std::lock_guard<std::mutex> lock(impl->mutex);
+        std::lock_guard<std::recursive_mutex> lock(impl->mutex);
         auto& newCall = impl->createOutgoingCall(target);
 
         newCallId = newCall.id();
         data["id"] = newCallId.toString();
         data["port"] = newCall.receiverPort();
+        data["videoPort"] = newCall.videoReceiverPort();
         data["machine"] = impl->self.id().toString();
     }
 
@@ -490,23 +526,28 @@ void CallProtocol::requestCall(Instance const& target) {
     data = Json::parse(response->body);
 
     {
-        std::lock_guard<std::mutex> lock(impl->mutex);
+        std::lock_guard<std::recursive_mutex> lock(impl->mutex);
         auto call = impl->outgoingCallById(newCallId);
         if (call != nullptr) {
             call->connect(data["port"]);
+            call->connectVideo(data["videoPort"]);
+
+            if (impl->self.autoAccept()) {
+                enableVideoForCall(newCallId);
+            }
         }
     }
 
     onCallsChanged();
 }
 
-void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort) {
+void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, std::optional<int> videoReceiverPort) {
     impl->logger->debug("Accept call {}", id.toString());
 
     bool success = true;
     std::unique_ptr<Instance> callTarget;
     {
-        std::lock_guard<std::mutex> lock(impl->mutex);
+        std::lock_guard<std::recursive_mutex> lock(impl->mutex);
         auto call = impl->incomingCallById(id);
         if (call != nullptr) {
             callTarget = std::make_unique<Instance>(call->target());
@@ -518,6 +559,9 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort) {
         data["id"] = id.toString();
         if (receiverPort) {
             data["port"] = *receiverPort;
+        }
+        if (videoReceiverPort) {
+            data["videoPort"] = *videoReceiverPort;
         }
 
         auto request = clientForTarget(*callTarget);
@@ -535,7 +579,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort) {
     }
 
     {
-        std::lock_guard<std::mutex> lock(impl->mutex);
+        std::lock_guard<std::recursive_mutex> lock(impl->mutex);
         auto call = impl->incomingCallById(id);
         if (success && call != nullptr) {
             call->start();
@@ -553,7 +597,7 @@ void CallProtocol::cancelCall(UUID const& id) {
 }
 
 void CallProtocol::muteCall(UUID const& id, bool mute) {
-    std::unique_lock<std::mutex> lock(impl->mutex);
+    std::unique_lock<std::recursive_mutex> lock(impl->mutex);
 
     auto call = impl->incomingCallById(id);
     if (call == nullptr) {
@@ -564,9 +608,44 @@ void CallProtocol::muteCall(UUID const& id, bool mute) {
         if (mute && !call->isMuted()) {
             impl->logger->info("Muting call {}", id.toString());
             call->mute();
-        } else if (call->isMuted()) {
+        } else if (!mute && call->isMuted()) {
             impl->logger->info("Unmuting call {}", id.toString());
             call->unmute();
+        }
+
+        onCallsChanged();
+    }
+}
+
+void CallProtocol::enableVideoForCall(UUID const& id, bool sendVideo) {
+    std::unique_lock<std::recursive_mutex> lock(impl->mutex);
+
+    auto call = impl->incomingCallById(id);
+    if (call == nullptr) {
+        call = impl->outgoingCallById(id);
+    }
+
+    if (call != nullptr) {
+        if (!call->canSendVideo()) {
+            return;
+        }
+
+        if (sendVideo && !call->isSendingVideo()) {
+            impl->logger->info("Sending video for call {}", id.toString());
+            call->startVideo();
+        } else if (!sendVideo && call->isSendingVideo()) {
+            impl->logger->info("Stopping video for call {}", id.toString());
+            call->stopVideo();
+        }
+
+        Json data;
+        data["id"] = call->id().toString();
+        data["enable"] = sendVideo;
+
+        auto request = clientForTarget(call->target());
+        auto response = request.Post("/call/enable_video", data.dump(), jsonContentType);
+        if (!response || response->status != 200) {
+            impl->logger->error("Error while sending request");
         }
 
         onCallsChanged();
@@ -594,15 +673,17 @@ void CallProtocol::requestRemoteAction(UUID const& callId, std::string const& ac
 }
 
 std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
-    std::lock_guard<std::mutex> lock(impl->mutex);
+    std::lock_guard<std::recursive_mutex> lock(impl->mutex);
 
     std::vector<CallInfo> result;
-    auto addCallsFromList = [&result](std::vector<Call> const& calls, bool canBeAccepted) {
+    auto addCallsFromList = [this, &result](std::vector<Call> const& calls, bool canBeAccepted) {
         for (auto const& call : calls) {
             if (call.isInvalid()) continue;
 
             result.push_back({ call.id(), call.target().id(), call.target().name(), call.isRunning(), call.isMuted(),
-                               canBeAccepted && !call.isRunning(), call.target().remoteActions() });
+                               canBeAccepted && !call.isRunning(), call.target().canReceiveVideo(),
+                               impl->self.hasVideoDevice(), call.isSendingVideo(), call.remoteSendsVideo(),
+                               call.videoReceiver(), call.target().remoteActions() });
         }
     };
 

@@ -15,6 +15,8 @@ public:
 
     bool isRunning() const;
 
+    GstElement* getElementByName(std::string const& name);
+
 private:
     GstElement* pipeline = nullptr;
     bool running = false;

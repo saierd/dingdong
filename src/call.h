@@ -2,11 +2,14 @@
 
 #include <memory>
 
+#include <gtkmm/widget.h>
+
 #include "instance.h"
 #include "settings.h"
 #include "system/uuid.h"
 
 class AudioManager;
+class VideoReceiver;
 
 class Call {
 public:
@@ -40,6 +43,18 @@ public:
 
     bool isRunning() const;
     bool isMuted() const;
+
+    void setRemoteSendsVideo(bool remoteSendsVideo);
+    bool remoteSendsVideo() const;
+
+    int videoReceiverPort() const;
+    std::shared_ptr<VideoReceiver> videoReceiver() const;
+
+    void connectVideo(int senderPort);
+    void startVideo();
+    void stopVideo();
+    bool canSendVideo() const;
+    bool isSendingVideo() const;
 
     bool isInvalid() const;
     void invalidate();

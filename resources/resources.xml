@@ -16,5 +16,7 @@
         <file alias="save.svg">../3rdparty/material-design-icons/ic_save_24px.svg</file>
         <file alias="settings.svg">../3rdparty/material-design-icons/ic_settings_24px.svg</file>
         <file alias="speaker.svg">../3rdparty/material-design-icons/ic_volume_up_24px.svg</file>
+        <file alias="video.svg">../3rdparty/material-design-icons/ic_videocam_24px.svg</file>
+        <file alias="video_off.svg">../3rdparty/material-design-icons/ic_videocam_off_24px.svg</file>
     </gresource>
 </gresources>

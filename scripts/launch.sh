@@ -35,6 +35,12 @@ sudo ./scripts/display/set_brightness.sh 100
 ./scripts/display/set_screensaver_timeout.sh 20
 ./scripts/display/force_on.sh
 
+# Camera setup.
+# =============
+
+sudo raspi-config nonint do_camera 0
+sudo usermod -a -G video $(whoami)
+
 # Audio Setup.
 # ============
 

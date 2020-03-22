@@ -16,6 +16,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-qual -Wconversion-null -Woverleng
 
 include(cmake/clang_tidy.cmake)
 include(cmake/ccache.cmake)
+include(cmake/gdk-x11.cmake)
 include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)
 include(cmake/gtkmm.cmake)
@@ -122,6 +123,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     cpp-httplib
+    gdk-x11
     gstreamer
     gtkmm
     libuuid

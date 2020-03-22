@@ -3,7 +3,7 @@ A doorbell and intercom solution running on Raspberry Pi.
 ## Features
 
 * Ringing the door from another instance or with a switch.
-* Intercom system.
+* Intercom system with audio and video streaming.
 * Touchscreen interface.
 * Access control using numeric keys and RFID tags.
 * Using a PIR motion sensor for controlling the screen saver.
@@ -17,6 +17,7 @@ Each instance needs a Raspberry Pi with the following accessories. The software 
 - An official Raspberry Pi 7" touchscreen.
 - A USB webcam with a microphone.
 - A speaker on the Raspberry Pi audio jack.
+- A Raspberry Pi camera module for video streaming (optional). USB webcams might or might not work since they can be quite broken on the Raspberry Pi's USB port.
 - An RC522 RFID scanner (optional).
 - A PIR motion sensor (optional).
 - A relay shield from Sequent Microsystems (optional).
@@ -80,6 +81,10 @@ Runtime dependencies are declared in the `deb` package. In addition to the libra
 ### Touchscreen
 
 Connect the Raspberry Pi touchscreen as described in https://www.element14.com/community/docs/DOC-78156.
+
+### Camera
+
+If you want to use a Raspberry Pi camera module, connect it to the Pi and set the option `videoDevice` to the video device you want to use (e.g. `/dev/video0`). Instances which accept calls automatically will also start the video stream automatically when a call starts. Other instances will get a button in the call screen that allows to enable transmission of the video stream.
 
 ### RFID Scanner
 

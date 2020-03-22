@@ -5,6 +5,7 @@
 
 #include "audio_manager.h"
 #include "stream/audio.h"
+#include "stream/video.h"
 #include "util/logging.h"
 
 class PortManager {
@@ -122,6 +123,14 @@ public:
     PortManager::Handle receiverPort;
     std::unique_ptr<AudioReceiver> receiver;
 
+    PortManager::Handle videoReceiverPort;
+    bool remoteSendsVideo = false;
+    std::shared_ptr<VideoReceiver> videoReceiver;
+
+    std::unique_ptr<VideoSender> videoSender;
+    std::string videoSenderDevice;
+    int videoSenderPort = -1;
+
     Logger logger;
 };
 
@@ -134,6 +143,15 @@ Call::Call(Settings const& self, Instance const& target, std::shared_ptr<AudioMa
         impl->receiver = std::make_unique<AudioReceiver>(impl->receiverPort.get(), self.callVolume());
         impl->receiver->start();
     }
+
+    impl->videoReceiverPort = globalPortManager.getPort();
+    if (impl->videoReceiverPort.isValid()) {
+        impl->logger->info("Starting video receiver on port {}", impl->videoReceiverPort.get());
+        impl->videoReceiver = std::make_shared<VideoReceiver>(impl->videoReceiverPort.get());
+        impl->videoReceiver->start();
+    }
+
+    impl->videoSenderDevice = self.videoDevice();
 }
 
 Call::Call(Settings const& self, UUID const& id, Instance const& target, std::shared_ptr<AudioManager> audioManager)
@@ -213,6 +231,50 @@ bool Call::isMuted() const {
     return impl->muted;
 }
 
+void Call::setRemoteSendsVideo(bool remoteSendsVideo) {
+    impl->remoteSendsVideo = remoteSendsVideo;
+}
+
+bool Call::remoteSendsVideo() const {
+    return impl->remoteSendsVideo;
+}
+
+int Call::videoReceiverPort() const {
+    return impl->videoReceiverPort.get();
+}
+
+std::shared_ptr<VideoReceiver> Call::videoReceiver() const {
+    return impl->videoReceiver;
+}
+
+void Call::connectVideo(int senderPort) {
+    if (impl->videoSender && senderPort == impl->videoSenderPort) return;
+
+    impl->logger->info("Connecting video sender to {}:{}", impl->target.ipAddress().toString(), senderPort);
+    impl->videoSender = std::make_unique<VideoSender>(impl->videoSenderDevice, impl->target.ipAddress(), senderPort);
+    impl->videoSenderPort = senderPort;
+}
+
+void Call::startVideo() {
+    if (impl->videoSender) {
+        impl->videoSender->start();
+    }
+}
+
+void Call::stopVideo() {
+    if (impl->videoSender) {
+        impl->videoSender->stop();
+    }
+}
+
+bool Call::canSendVideo() const {
+    return !impl->videoSenderDevice.empty();
+}
+
+bool Call::isSendingVideo() const {
+    return impl->videoSender && impl->videoSender->isRunning();
+}
+
 bool Call::isInvalid() const {
     return impl->invalid;
 }
@@ -220,7 +282,11 @@ bool Call::isInvalid() const {
 void Call::invalidate() {
     impl->invalid = true;
     stop();
+    stopVideo();
     if (impl->receiver) {
         impl->receiver->stop();
+    }
+    if (impl->videoReceiver) {
+        impl->videoReceiver->stop();
     }
 }

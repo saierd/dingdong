@@ -24,11 +24,12 @@ public:
 
 public:
     Instance(MachineId id, std::string name, IpAddress ipAddress = IpAddress(), int order = 0,
-             std::vector<RemoteAction> remoteActions = {})
+             bool canReceiveVideo = true, std::vector<RemoteAction> remoteActions = {})
         : _id(id),
           _name(std::move(name)),
           _ipAddress(ipAddress),
           _order(order),
+          _canReceiveVideo(canReceiveVideo),
           _remoteActions(std::move(remoteActions)) {}
 
     MachineId const& id() const& {
@@ -47,6 +48,10 @@ public:
         return _order;
     }
 
+    bool canReceiveVideo() const {
+        return _canReceiveVideo;
+    }
+
     void addRemoteAction(RemoteAction action) {
         _remoteActions.emplace_back(std::move(action));
     }
@@ -57,7 +62,7 @@ public:
 
     bool operator==(Instance const& other) const {
         return _id == other._id && _name == other._name && _ipAddress == other._ipAddress && _order == other._order &&
-               _remoteActions == other._remoteActions;
+               _canReceiveVideo == other._canReceiveVideo && _remoteActions == other._remoteActions;
     }
 
     bool operator!=(Instance const& other) const {
@@ -69,6 +74,7 @@ protected:
     std::string _name;
     IpAddress _ipAddress;
     int _order;
+    bool _canReceiveVideo;
 
     std::vector<RemoteAction> _remoteActions;
 };

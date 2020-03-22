@@ -1,32 +1,34 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
-#include "network/ip_address.h"
+class IpAddress;
+class Pipeline;
 
 class VideoSender {
 public:
-    VideoSender(IpAddress const& targetHost, int targetPort);
+    VideoSender(std::string const& device, IpAddress const& targetHost, int targetPort, int width = 320,
+                int height = 240, int framerate = 5);
     ~VideoSender();
 
     void start();
     void stop();
 
+    bool isRunning() const;
+
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };
 
 class VideoReceiver {
 public:
     explicit VideoReceiver(int sourcePort);
-    ~VideoReceiver();
 
     void start();
     void stop();
 
+    void setWindowHandle(unsigned long window);
+
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl;
+    std::unique_ptr<Pipeline> pipeline;
 };

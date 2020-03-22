@@ -11,6 +11,7 @@
     "ringtoneVolume": 1,
     "callVolume": 1,
     "motionSensorPin": -1,
+    "videoDevice": "",
     "logLevel": "off",
     "actions": {}
 }
