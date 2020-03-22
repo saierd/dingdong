@@ -447,6 +447,15 @@ void CallProtocol::requestCall(Instance const& target) {
                 break;
             }
         }
+        if (!alreadyCalled) {
+            for (auto const& call : impl->incomingCalls) {
+                if (call.target().id() == target.id() && !call.isInvalid()) {
+                    alreadyCalled = true;
+                    callAlreadyRunning = call.isRunning();
+                    break;
+                }
+            }
+        }
     }
     if (alreadyCalled) {
         // We already have a call to the target instance. Ring again. This has to happen without having the call mutex
