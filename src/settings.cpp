@@ -33,5 +33,7 @@ Settings::Settings(std::string const& settingsFile) : Instance(getMachineId(), "
         getValueFromJson(_logLevel, data, "logLevel");
 
         getValueFromJson(_actions, data, "actions");
+
+        _canReceiveVideo = _showCallScreen;
     }
 }

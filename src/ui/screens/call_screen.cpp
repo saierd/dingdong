@@ -45,8 +45,10 @@ public:
             buttonsHBox.pack_start(mute, false, true);
             mute.set_size_request(additionalCallButtonsWidth);
 
-            buttonsHBox.pack_start(video, false, true);
-            video.set_size_request(additionalCallButtonsWidth);
+            if (call.remoteCanReceiveVideo) {
+                buttonsHBox.pack_start(video, false, true);
+                video.set_size_request(additionalCallButtonsWidth);
+            }
         }
 
         loadButtonIconLarge(acceptIcon, "/call_start.svg");

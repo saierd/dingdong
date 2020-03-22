@@ -120,6 +120,10 @@ public:
 
             protocol->onCallsChanged();
 
+            if (self.autoAccept()) {
+                protocol->enableVideoForCall(id);
+            }
+
             Json result;
             result["status"] = "ok";
             response.set_content(result.dump(), jsonContentType);
@@ -639,6 +643,8 @@ void CallProtocol::enableVideoForCall(UUID const& id, bool sendVideo) {
         if (!response || response->status != 200) {
             impl->logger->error("Error while sending request");
         }
+
+        onCallsChanged();
     }
 }
 
@@ -671,8 +677,9 @@ std::vector<CallInfo> CallProtocol::currentActiveCalls() const {
             if (call.isInvalid()) continue;
 
             result.push_back({ call.id(), call.target().id(), call.target().name(), call.isRunning(), call.isMuted(),
-                               canBeAccepted && !call.isRunning(), call.isSendingVideo(), call.remoteSendsVideo(),
-                               call.videoReceiver(), call.target().remoteActions() });
+                               canBeAccepted && !call.isRunning(), call.target().canReceiveVideo(),
+                               call.isSendingVideo(), call.remoteSendsVideo(), call.videoReceiver(),
+                               call.target().remoteActions() });
         }
     };
 

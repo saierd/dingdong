@@ -23,6 +23,7 @@ struct CallInfo {
     bool isRunning;
     bool isMuted;
     bool canBeAccepted;
+    bool remoteCanReceiveVideo;
 
     bool sendingVideo;
     bool remoteSendsVideo;

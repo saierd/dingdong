@@ -29,6 +29,7 @@ std::string const discoveryFieldName = "name";
 std::string const discoveryFieldIp = "ip";
 std::string const discoveryFieldOrder = "order";
 std::string const discoveryFieldActions = "actions";
+std::string const discoveryFieldCanReceiveVideo = "can_receive_video";
 
 std::string const discoveryLogCategory = "discovery";
 
@@ -43,6 +44,7 @@ public:
         data[discoveryFieldName] = instance.name();
         data[discoveryFieldIp] = interface.address().toString();
         data[discoveryFieldOrder] = instance.order();
+        data[discoveryFieldCanReceiveVideo] = instance.canReceiveVideo();
 
         if (!instance.remoteActions().empty()) {
             for (auto const& action : instance.remoteActions()) {
@@ -65,8 +67,17 @@ public:
             order = data[discoveryFieldOrder];
         }
 
-        return { MachineId(data[discoveryFieldId]), data[discoveryFieldName].get<std::string>(),
-                 IpAddress(data[discoveryFieldIp].get<std::string>()), order, std::move(actions) };
+        bool canReceiveVideo = true;
+        if (data.find(discoveryFieldCanReceiveVideo) != data.end()) {
+            canReceiveVideo = data[discoveryFieldCanReceiveVideo].get<bool>();
+        }
+
+        return { MachineId(data[discoveryFieldId]),
+                 data[discoveryFieldName].get<std::string>(),
+                 IpAddress(data[discoveryFieldIp].get<std::string>()),
+                 order,
+                 canReceiveVideo,
+                 std::move(actions) };
     }
 
     // Serialize the discovery message to a UDP packet.
