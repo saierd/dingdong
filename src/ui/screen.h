@@ -23,9 +23,9 @@ struct ScreenButton {
         : caption(std::move(_caption)), callback(std::move(_callback)) {}
 };
 
-class Screen {
+class BaseScreen {
 public:
-    virtual ~Screen() = default;
+    virtual ~BaseScreen() = default;
 
     virtual Gtk::Widget& widget() = 0;
 

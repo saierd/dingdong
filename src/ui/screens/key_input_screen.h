@@ -7,7 +7,7 @@
 
 #include "ui/screen.h"
 
-class KeyInputScreen : public Screen {
+class KeyInputScreen : public BaseScreen {
 public:
     KeyInputScreen(bool needConfirmation);
     ~KeyInputScreen() override;

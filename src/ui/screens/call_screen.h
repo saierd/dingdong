@@ -5,7 +5,7 @@
 #include "call_protocol.h"
 #include "ui/screen.h"
 
-class CallScreen : public Screen {
+class CallScreen : public BaseScreen {
 public:
     CallScreen();
     ~CallScreen() override;
