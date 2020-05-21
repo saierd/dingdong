@@ -23,10 +23,10 @@ std::string const h264Decoder = "decodebin";
 VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height, int framerate) {
     std::string pipelineSpecification = fmt::format(
         "{} ! "
-        "video/x-raw,width={},height={},framerate={}/1 ! "
         "videorate ! "
         "videoscale ! "
         "videoconvert ! "
+        "video/x-raw,width={},height={},framerate={}/1 ! "
         "{} ! "
         "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
