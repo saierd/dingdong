@@ -62,7 +62,7 @@ public:
 
     bool operator==(Instance const& other) const {
         return _id == other._id && _name == other._name && _ipAddress == other._ipAddress && _order == other._order &&
-               _remoteActions == other._remoteActions;
+               _canReceiveVideo == other._canReceiveVideo && _remoteActions == other._remoteActions;
     }
 
     bool operator!=(Instance const& other) const {

@@ -67,9 +67,9 @@ public:
             order = data[discoveryFieldOrder];
         }
 
-        bool canReceiveVideo = true;
+        bool canReceiveVideo = false;
         if (data.find(discoveryFieldCanReceiveVideo) != data.end()) {
-            canReceiveVideo = data[discoveryFieldCanReceiveVideo].get<bool>();
+            canReceiveVideo = data[discoveryFieldCanReceiveVideo];
         }
 
         return { MachineId(data[discoveryFieldId]),
