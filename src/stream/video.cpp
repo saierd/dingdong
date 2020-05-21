@@ -1,5 +1,6 @@
 #include "video.h"
 
+#include <procxx/process.h>
 #include <spdlog/fmt/fmt.h>
 
 #include <gst/video/videooverlay.h>
@@ -20,9 +21,16 @@ std::string const h264Encoder = "x264enc";
 std::string const h264Decoder = "decodebin";
 #endif
 
+std::string const restartWebcamCommand = "./scripts/restart_webcam.sh";
+
 VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height, int framerate) {
+#ifdef RASPBERRY_PI
+    procxx::process(restartWebcamCommand).exec();
+#endif
+
     std::string pipelineSpecification = fmt::format(
         "{} ! "
+        "video/x-raw,width={},height={},framerate={}/1 ! "
         "videorate ! "
         "videoscale ! "
         "videoconvert ! "
@@ -30,7 +38,8 @@ VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width,
         "{} ! "
         "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
-        videoSource, width, height, framerate, h264Encoder, targetHost.toString(), targetPort);
+        videoSource, width, height, framerate, width, height, framerate, h264Encoder, targetHost.toString(),
+        targetPort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
 
