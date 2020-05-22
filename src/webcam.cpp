@@ -4,59 +4,71 @@
 
 #include <procxx/process.h>
 
+#include <atomic>
+#include <random>
 #include <thread>
 
 std::string const restartWebcamCommand = "./scripts/restart_webcam.sh";
+std::string const videoDevice = "/dev/video0";
 
-static std::thread restartThread;
+struct WebcamRestartData {
+    std::atomic<bool> stopRestarting = false;
+    std::thread thread;
 
-void restartWebcam() {
-    waitForWebcam();
-
-#ifdef RASPBERRY_PI
-    restartThread = std::thread([]() {
-        categoryLogger("webcam")->debug("Restarting webcam");
-        try {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            procxx::process(restartWebcamCommand).exec();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            procxx::process(restartWebcamCommand).exec();
-        } catch (procxx::process::exception& e) {
-            categoryLogger("webcam")->error(e.what());
-        }
-    });
-#endif
-}
-
-void waitForWebcam() {
-#ifdef RASPBERRY_PI
-    if (restartThread.joinable()) {
-        categoryLogger("webcam")->debug("Waiting for webcam");
-        restartThread.join();
-        categoryLogger("webcam")->debug("Webcam is available");
+public:
+    std::chrono::milliseconds generateRandomWaitTime() {
+        return std::chrono::milliseconds(waitTimeDistribution(rng));
     }
-#endif
-}
+
+private:
+    std::mt19937 rng;
+    std::uniform_int_distribution<> waitTimeDistribution{ 300, 700 };
+};
+
+static WebcamRestartData webcamRestartData;
 
 bool fileExists(std::string const& filename) {
     struct stat buffer;
     return (stat(filename.c_str(), &buffer) == 0);
 }
 
-std::string getWebcamDevice() {
-    return "/dev/video0";
+void _restartWebcamOnce() {
+    // Wait a bit until the webcam is closed in case it was just used.
+    std::this_thread::sleep_for(webcamRestartData.generateRandomWaitTime());
 
-#ifdef RASPBERRY_PI
-    // On Raspberry Pi, /dev/video1 is usually the onboard camera. /dev/video0 is the USB webcam. After restarting the
-    // webcam (see above), it might get a different number, though.
-    for (auto const& name : { "/dev/video0", "/dev/video2" }) {
-        if (fileExists(name)) {
-            categoryLogger("webcam")->debug("Using video device {}", name);
-            return name;
-        }
+    categoryLogger("webcam")->debug("Restarting webcam");
+    try {
+        procxx::process(restartWebcamCommand).exec();
+    } catch (procxx::process::exception& e) {
+        categoryLogger("webcam")->error(e.what());
     }
-#endif
+}
 
-    return "";
+void _restartWebcam() {
+    _restartWebcamOnce();
+
+    // Sometimes the restarted webcam will fail to connect as the correct device. In that case we cannot do anything but
+    // to try restarting again. We do this until it works properly or there is a call. In that case we will stop
+    // restarting (video will not work for that call) and hope that it works next time...
+    while (!fileExists(videoDevice) && !webcamRestartData.stopRestarting) {
+        _restartWebcamOnce();
+    }
+}
+
+void restartWebcam() {
+    waitForWebcam();
+
+    webcamRestartData.stopRestarting = false;
+#ifdef RASPBERRY_PI
+    webcamRestartData.thread = std::thread(_restartWebcam);
+#endif
+}
+
+void waitForWebcam() {
+    if (webcamRestartData.thread.joinable()) {
+        categoryLogger("webcam")->debug("Waiting for webcam");
+        webcamRestartData.stopRestarting = true;
+        webcamRestartData.thread.join();
+        categoryLogger("webcam")->debug("Webcam is available");
+    }
 }

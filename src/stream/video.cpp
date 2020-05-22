@@ -8,7 +8,7 @@
 #include "gstreamer/gstreamer_helpers.h"
 
 #ifdef RASPBERRY_PI
-std::string const videoSource = "v4l2src device={}";
+std::string const videoSource = "v4l2src";
 
 // Use hardware accelerated encoders on the Raspberry Pi.
 std::string const h264Encoder = "omxh264enc";
@@ -25,11 +25,6 @@ std::string const h264Decoder = "decodebin";
 VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height, int framerate) {
     waitForWebcam();
 
-    std::string source = videoSource;
-#ifdef RASPBERRY_PI
-    source = fmt::format(videoSource, getWebcamDevice());
-#endif
-
     std::string pipelineSpecification = fmt::format(
         "{} ! "
         "video/x-raw,width={},height={},framerate={}/1 ! "
@@ -40,7 +35,8 @@ VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width,
         "{} ! "
         "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
-        source, width, height, framerate, width, height, framerate, h264Encoder, targetHost.toString(), targetPort);
+        videoSource, width, height, framerate, width, height, framerate, h264Encoder, targetHost.toString(),
+        targetPort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
 }
 
