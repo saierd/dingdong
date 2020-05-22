@@ -67,7 +67,9 @@ set(HEADERS
     src/ui/screens/main_screen.h
     src/ui/x_helpers.h
     src/util/json.h
-    src/util/logging.h)
+    src/util/logging.h
+    src/webcam.cpp
+    src/webcam.h)
 
 set(SOURCES
     src/access_control/access_control.cpp

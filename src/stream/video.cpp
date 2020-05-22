@@ -1,13 +1,14 @@
 #include "video.h"
 
-#include <procxx/process.h>
+#include "webcam.h"
+
 #include <spdlog/fmt/fmt.h>
 
 #include <gst/video/videooverlay.h>
 #include "gstreamer/gstreamer_helpers.h"
 
 #ifdef RASPBERRY_PI
-std::string const videoSource = "v4l2src";
+std::string const videoSource = "v4l2src device={}";
 
 // Use hardware accelerated encoders on the Raspberry Pi.
 std::string const h264Encoder = "omxh264enc";
@@ -21,11 +22,12 @@ std::string const h264Encoder = "x264enc";
 std::string const h264Decoder = "decodebin";
 #endif
 
-std::string const restartWebcamCommand = "./scripts/restart_webcam.sh";
-
 VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width, int height, int framerate) {
+    waitForWebcam();
+
+    std::string source = videoSource;
 #ifdef RASPBERRY_PI
-    procxx::process(restartWebcamCommand).exec();
+    source = fmt::format(videoSource, getWebcamDevice());
 #endif
 
     std::string pipelineSpecification = fmt::format(
@@ -38,9 +40,15 @@ VideoSender::VideoSender(IpAddress const& targetHost, int targetPort, int width,
         "{} ! "
         "rtph264pay config-interval=1 ! "
         "udpsink host={} port={}",
-        videoSource, width, height, framerate, width, height, framerate, h264Encoder, targetHost.toString(),
-        targetPort);
+        source, width, height, framerate, width, height, framerate, h264Encoder, targetHost.toString(), targetPort);
     pipeline = std::make_unique<Pipeline>(pipelineSpecification);
+}
+
+VideoSender::~VideoSender() {
+    // Restart the webcam USB device. This is necessary, since the webcam sometimes gets into a weird state where it
+    // cannot be opened anymore. This happens presumably when it doesn't get enough power.
+    // We do this asynchronously after finishing a video call to avoid any delays when starting the next video call.
+    restartWebcam();
 }
 
 void VideoSender::start() {

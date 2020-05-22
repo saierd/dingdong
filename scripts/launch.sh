@@ -9,6 +9,9 @@ set -e
 DINGDONG_PATH="/opt/dingdong"
 cd "${DINGDONG_PATH}"
 
+sudo usermod -a -G video $(whoami)
+#newgrp - # Reload groups.
+
 # Power saving.
 # =============
 
