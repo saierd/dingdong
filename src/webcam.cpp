@@ -17,6 +17,10 @@ void restartWebcam() {
     restartThread = std::thread([]() {
         categoryLogger("webcam")->debug("Restarting webcam");
         try {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            procxx::process(restartWebcamCommand).exec();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             procxx::process(restartWebcamCommand).exec();
         } catch (procxx::process::exception& e) {
             categoryLogger("webcam")->error(e.what());

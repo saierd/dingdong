@@ -7,7 +7,7 @@
 
 class VideoSender {
 public:
-    VideoSender(IpAddress const& targetHost, int targetPort, int width = 640, int height = 480, int framerate = 5);
+    VideoSender(IpAddress const& targetHost, int targetPort, int width = 320, int height = 240, int framerate = 5);
     ~VideoSender();
 
     void start();
