@@ -1,5 +1,7 @@
 #include "gpio.h"
 
+#include <thread>
+
 #include "system/gpio.h"
 #include "util/logging.h"
 
