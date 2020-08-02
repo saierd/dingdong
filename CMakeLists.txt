@@ -132,6 +132,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     x11
     xfixes)
 
+source_group(TREE "src")
+
 if (RASPBERRY_PI)
     target_compile_definitions(${PROJECT_NAME} PRIVATE RASPBERRY_PI)
 endif()
