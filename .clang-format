@@ -9,4 +9,5 @@ PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: Empty
 SpaceAfterTemplateKeyword: false
 Cpp11BracedListStyle: false
+IncludeBlocks: Preserve
 ...
