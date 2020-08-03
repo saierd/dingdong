@@ -427,6 +427,16 @@ public:
         audioManager->playRingtone(self.ringtone());
     }
 
+    void logError(std::shared_ptr<httplib::Response> const& response) {
+        if (!response) {
+            logger->error("Did not receive an answer to the request");
+            return;
+        }
+
+        logger->error("Request failed, got response {} ({})", response->status,
+                      httplib::detail::status_message(response->status));
+    }
+
 public:
     Logger logger;
 
@@ -518,7 +528,7 @@ void CallProtocol::requestCall(Instance const& target) {
     auto request = clientForTarget(target);
     auto response = request.Post("/call/request", data.dump(), jsonContentType);
     if (!response || response->status != 200) {
-        impl->logger->error("Error while sending request");
+        impl->logError(response);
         return;
     }
 
@@ -567,7 +577,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, s
         auto request = clientForTarget(*callTarget);
         auto response = request.Post("/call/accept", data.dump(), jsonContentType);
         if (!response || response->status != 200) {
-            impl->logger->error("Error while sending request");
+            impl->logError(response);
             success = false;
         }
 
@@ -645,7 +655,7 @@ void CallProtocol::enableVideoForCall(UUID const& id, bool sendVideo) {
         auto request = clientForTarget(call->target());
         auto response = request.Post("/call/enable_video", data.dump(), jsonContentType);
         if (!response || response->status != 200) {
-            impl->logger->error("Error while sending request");
+            impl->logError(response);
         }
 
         onCallsChanged();
@@ -667,7 +677,7 @@ void CallProtocol::requestRemoteAction(UUID const& callId, std::string const& ac
         auto request = clientForTarget(call->target());
         auto response = request.Post("/action", data.dump(), jsonContentType);
         if (!response || response->status != 200) {
-            impl->logger->error("Error while sending request");
+            impl->logError(response);
         }
     }
 }
