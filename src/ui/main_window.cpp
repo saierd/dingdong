@@ -6,8 +6,6 @@
 std::string const windowBackgroundColor = colorWhite;
 int const mainWindowPadding = largePadding;
 
-int const buttonMinimumWidth = 100;
-
 MainWindow::MainWindow(BaseScreen& baseScreen) {
     set_border_width(mainWindowPadding);
     fullscreen();

@@ -13,6 +13,7 @@
 #include "system/uuid.h"
 
 class AudioManager;
+class CallHistory;
 class VideoReceiver;
 
 struct CallInfo {
@@ -34,7 +35,8 @@ struct CallInfo {
 
 class CallProtocol {
 public:
-    CallProtocol(Settings const& self, InstanceDiscovery const& instances, std::shared_ptr<AudioManager> audioManager);
+    CallProtocol(Settings const& self, CallHistory* incomingCallHistory, InstanceDiscovery const& instances,
+                 std::shared_ptr<AudioManager> audioManager);
     ~CallProtocol();
 
     void requestCall(Instance const& target);

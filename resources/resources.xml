@@ -8,8 +8,10 @@
         <file alias="bell.svg">../3rdparty/material-design-icons/bell.svg</file>
         <file alias="call_start.svg">../3rdparty/material-design-icons/ic_call_24px.svg</file>
         <file alias="call_stop.svg">../3rdparty/material-design-icons/ic_call_end_24px.svg</file>
+        <file alias="call_missed.svg">../3rdparty/material-design-icons/ic_ring_volume_24px.svg</file>
         <file alias="check.svg">../3rdparty/material-design-icons/ic_check_24px.svg</file>
         <file alias="delete.svg">../3rdparty/material-design-icons/ic_delete_24px.svg</file>
+        <file alias="forward.svg">../3rdparty/material-design-icons/ic_arrow_forward_24px.svg</file>
         <file alias="key.svg">../3rdparty/material-design-icons/ic_vpn_key_24px.svg</file>
         <file alias="microphone.svg">../3rdparty/material-design-icons/ic_mic_24px.svg</file>
         <file alias="microphone_off.svg">../3rdparty/material-design-icons/ic_mic_off_24px.svg</file>

@@ -40,7 +40,9 @@ set(HEADERS
     src/audio_manager.h
     src/audio_player.h
     src/call.h
+    src/call_history.h
     src/call_protocol.h
+    src/camera.h
     src/discovery.h
     src/gstreamer/gstreamer.h
     src/gstreamer/gstreamer_helpers.h
@@ -63,6 +65,7 @@ set(HEADERS
     src/ui/main_window.h
     src/ui/screen.h
     src/ui/screens/action_screen.h
+    src/ui/screens/call_history_screen.h
     src/ui/screens/call_screen.h
     src/ui/screens/key_screen.h
     src/ui/screens/key_input_screen.h
@@ -80,7 +83,9 @@ set(SOURCES
     src/audio_manager.cpp
     src/audio_player.cpp
     src/call.cpp
+    src/call_history.cpp
     src/call_protocol.cpp
+    src/camera.cpp
     src/discovery.cpp
     src/gstreamer/gstreamer.cpp
     src/gstreamer/pipeline.cpp
@@ -100,6 +105,7 @@ set(SOURCES
     src/ui/main_window.cpp
     src/ui/screen.cpp
     src/ui/screens/action_screen.cpp
+    src/ui/screens/call_history_screen.cpp
     src/ui/screens/call_screen.cpp
     src/ui/screens/key_screen.cpp
     src/ui/screens/key_input_screen.cpp

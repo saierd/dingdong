@@ -6,6 +6,7 @@
 #include <procxx/process.h>
 
 #include "audio_manager.h"
+#include "call_history.h"
 #include "call_protocol.h"
 #include "discovery.h"
 #include "gstreamer/gstreamer.h"
@@ -22,6 +23,7 @@
 
 #include "ui/main_window.h"
 #include "ui/screens/action_screen.h"
+#include "ui/screens/call_history_screen.h"
 #include "ui/screens/call_screen.h"
 #include "ui/screens/key_input_screen.h"
 #include "ui/screens/key_screen.h"
@@ -84,6 +86,7 @@ int main(int argc, char** argv) {
     auto audioManager = std::make_shared<AudioManager>(self);
 
     ActionScreen actionScreen;
+    CallHistoryScreen callHistoryScreen;
     CallScreen callScreen;
     KeyScreen keyScreen(&accessControl);
     KeyInputScreen keyInputScreen(false);
@@ -166,7 +169,8 @@ int main(int argc, char** argv) {
     });
 #endif
 
-    CallProtocol calls(self, discovery, audioManager);
+    CallHistory incomingCallHistory;
+    CallProtocol calls(self, &incomingCallHistory, discovery, audioManager);
     mainScreen.onCall.connect([&calls](Instance const& instance) {
         log()->info("Call {} ({})", instance.id().toString(), instance.name());
         calls.requestCall(instance);
@@ -219,6 +223,31 @@ int main(int argc, char** argv) {
 
     discovery.onInstancesChanged(updateInstanceScreen);
     calls.onCallsChanged.connect(updateInstanceScreen);
+
+    ScreenButton callHistoryButton("",
+                                   [&mainWindow, &callHistoryScreen]() { mainWindow.pushScreen(callHistoryScreen); });
+    callHistoryButton.icon = "/call_missed.svg";
+    callHistoryButton.color = colorRed;
+    mainWindow.addPermanentButton(callHistoryButton, [&mainWindow, &mainScreen, &incomingCallHistory]() {
+        // Allow on main screen only.
+        if (!mainWindow.isCurrentScreen(mainScreen)) {
+            return false;
+        }
+
+        return incomingCallHistory.numMissedEntries() > 0;
+    });
+
+    auto updateCallHistoryScreen = [&callHistoryScreen, &incomingCallHistory, &mainWindow]() {
+        Glib::signal_idle().connect([&]() {
+            callHistoryScreen.updateHistory(incomingCallHistory);
+            mainWindow.updateButtons();
+            return false;  // Disconnect the function.
+        });
+    };
+
+    updateCallHistoryScreen();
+    incomingCallHistory.onEntriesChanged.connect(updateCallHistoryScreen);
+    callHistoryScreen.onClear.connect([&incomingCallHistory]() { incomingCallHistory.clear(); });
 
     // Forces the screen to be on unless we are on the main screen.
     auto turnOnScreenIfNecessary = [&mainWindow, &mainScreen]() {

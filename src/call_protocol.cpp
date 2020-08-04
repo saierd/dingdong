@@ -3,15 +3,19 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <map>
 #include <mutex>
 #include <thread>
 #include <vector>
 
+#include <gtkmm/main.h>
+
 #include "httplib.h"
 
 #include "audio_manager.h"
 #include "call.h"
+#include "camera.h"
 #include "util/json.h"
 #include "util/logging.h"
 
@@ -25,6 +29,7 @@ std::chrono::seconds const callAcceptTimeout(45);
 std::chrono::minutes const callTimeout(3);
 
 char const* jsonContentType = "application/json";
+char const* jpegContentType = "image/jpeg";
 
 httplib::Client clientForTarget(Instance const& target) {
     return httplib::Client(target.ipAddress().toString().c_str(), protocolPort);
@@ -32,9 +37,13 @@ httplib::Client clientForTarget(Instance const& target) {
 
 class CallProtocol::Impl {
 public:
-    Impl(CallProtocol* _protocol, Settings _self, InstanceDiscovery const& _instances,
-         std::shared_ptr<AudioManager> _audioManager)
-        : protocol(_protocol), self(std::move(_self)), instances(_instances), audioManager(std::move(_audioManager)) {
+    Impl(CallProtocol* _protocol, Settings _self, CallHistory* _incomingCallHistory,
+         InstanceDiscovery const& _instances, std::shared_ptr<AudioManager> _audioManager)
+        : protocol(_protocol),
+          self(std::move(_self)),
+          incomingCallHistory(_incomingCallHistory),
+          instances(_instances),
+          audioManager(std::move(_audioManager)) {
         logger = categoryLogger(protocolLoggingCategory);
 
         httpServer.Post("/call/request", [this](httplib::Request const& request, httplib::Response& response) {
@@ -85,6 +94,29 @@ public:
                 protocol->acceptCall(id, receiverPort, videoReceiverPort);
                 protocol->enableVideoForCall(id);
             }
+        });
+        httpServer.Post("/call/image/(.+)", [this](httplib::Request const& request, httplib::Response& response) {
+            UUID id(request.matches[1]);
+
+            {
+                std::lock_guard<std::recursive_mutex> lock(mutex);
+                logger->info("Received image for {}", id.toString());
+
+                auto call = incomingCallById(id);
+                if (call == nullptr) {
+                    logger->error("Could not find call {}", id.toString());
+                    response.status = 500;
+                    return;
+                }
+
+                call->setImageData(request.body);
+            }
+
+            protocol->onCallsChanged();
+
+            Json result;
+            result["status"] = "ok";
+            response.set_content(result.dump(), jsonContentType);
         });
         httpServer.Post("/call/accept", [this](httplib::Request const& request, httplib::Response& response) {
             auto data = Json::parse(request.body);
@@ -227,6 +259,9 @@ public:
     ~Impl() {
         stopThreads = true;
 
+        // Wait for asynchronous upload actions to be finished.
+        storeAsynchronousUpload({});
+
         if (cleanupThread.joinable()) {
             cleanupThread.join();
         }
@@ -241,7 +276,7 @@ public:
     }
 
     Call& createIncomingCall(UUID const& id, Instance const& instance) {
-        incomingCalls.emplace_back(self, id, instance, audioManager);
+        incomingCalls.emplace_back(self, incomingCallHistory, id, instance, audioManager);
 
         auto& newCall = incomingCalls.back();
         callLastActivity[newCall.id().toString()] = std::chrono::steady_clock::now();
@@ -251,7 +286,7 @@ public:
     }
 
     Call& createOutgoingCall(Instance const& target) {
-        outgoingCalls.emplace_back(self, target, audioManager);
+        outgoingCalls.emplace_back(self, nullptr, target, audioManager);
 
         auto& newCall = outgoingCalls.back();
         logger->debug("Created call with id {}", newCall.id().toString());
@@ -437,12 +472,22 @@ public:
                       httplib::detail::status_message(response->status));
     }
 
+    void storeAsynchronousUpload(std::future<void> future) {
+        // Make sure the last one is finished to avoid multiple actions at once.
+        if (asynchronousUpload.valid()) {
+            asynchronousUpload.get();
+        }
+
+        asynchronousUpload = std::move(future);
+    }
+
 public:
     Logger logger;
 
     CallProtocol* protocol;
 
     Settings self;
+    CallHistory* incomingCallHistory;
     InstanceDiscovery const& instances;
 
     std::shared_ptr<AudioManager> audioManager;
@@ -469,11 +514,13 @@ public:
     std::atomic<bool> stopThreads = false;
     std::thread pingThread;
     std::thread cleanupThread;
+
+    std::future<void> asynchronousUpload;
 };
 
-CallProtocol::CallProtocol(Settings const& self, InstanceDiscovery const& instances,
+CallProtocol::CallProtocol(Settings const& self, CallHistory* incomingCallHistory, InstanceDiscovery const& instances,
                            std::shared_ptr<AudioManager> audioManager) {
-    impl = std::make_unique<Impl>(this, self, instances, std::move(audioManager));
+    impl = std::make_unique<Impl>(this, self, incomingCallHistory, instances, std::move(audioManager));
 }
 
 CallProtocol::~CallProtocol() = default;
@@ -525,6 +572,12 @@ void CallProtocol::requestCall(Instance const& target) {
         data["machine"] = impl->self.id().toString();
     }
 
+    // Notify the GUI of the new call to give immediate feedback on starting a new call.
+    onCallsChanged();
+    while (Gtk::Main::events_pending()) {
+        Gtk::Main::iteration(false);
+    }
+
     auto request = clientForTarget(target);
     auto response = request.Post("/call/request", data.dump(), jsonContentType);
     if (!response || response->status != 200) {
@@ -534,6 +587,32 @@ void CallProtocol::requestCall(Instance const& target) {
 
     impl->logger->trace("Response {}: {}", response->status, response->body);
     data = Json::parse(response->body);
+
+    if (impl->self.hasVideoDevice()) {
+        // Take an image and send it to the call target. It can display this image to inform the user about missed
+        // calls.
+        // Note that we need to take the image synchronously now (before initializing the call's video stream) since the
+        // video stream will occupy the video camera later.
+        auto cameraImage = takeCameraImage();
+
+        if (!cameraImage.empty()) {
+            impl->storeAsynchronousUpload(
+                std::async(std::launch::async, [this, target, newCallId, cameraImage = std::move(cameraImage)] {
+                    // Wait until the rest of the call initialization is done to not block the more important actions.
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+                    impl->logger->debug("Send image for call {}", newCallId.toString());
+
+                    std::string url = "/call/image/" + newCallId.toString();
+                    std::string body(reinterpret_cast<char const*>(cameraImage.data()), cameraImage.size());
+                    auto imageRequest = clientForTarget(target);
+                    auto imageResponse = imageRequest.Post(url.c_str(), body, jpegContentType);
+                    if (!imageResponse || imageResponse->status != 200) {
+                        impl->logError(imageResponse);
+                    }
+                }));
+        }
+    }
 
     {
         std::lock_guard<std::recursive_mutex> lock(impl->mutex);
@@ -603,6 +682,12 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, s
 
 void CallProtocol::cancelCall(UUID const& id) {
     impl->logger->debug("Cancel call {}", id.toString());
+
+    auto call = impl->incomingCallById(id);
+    if (call) {
+        call->setCanceled();
+    }
+
     impl->cancelCall(id);
 }
 

@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include "audio_manager.h"
+#include "call_history.h"
 #include "stream/audio.h"
 #include "stream/video.h"
 #include "util/logging.h"
@@ -104,16 +105,23 @@ std::string const callLogCategory = "call";
 
 class Call::Impl {
 public:
-    Impl(Instance _target, std::shared_ptr<AudioManager> _audioManager)
-        : target(std::move(_target)), audioManager(std::move(_audioManager)) {
+    Impl(Settings const& self, CallHistory* _history, Instance _target, std::shared_ptr<AudioManager> _audioManager)
+        : target(std::move(_target)), history(_history), audioManager(std::move(_audioManager)) {
+        videoSenderDevice = self.videoDevice();
         logger = categoryLogger(callLogCategory);
     }
 
     Instance target;
     UUID id;
 
+    CallHistory* history;
+
     bool invalid = false;
     bool muted = false;
+    bool accepted = false;
+    bool canceled = false;
+
+    std::string imageData;
 
     std::shared_ptr<AudioManager> audioManager;
 
@@ -134,8 +142,9 @@ public:
     Logger logger;
 };
 
-Call::Call(Settings const& self, Instance const& target, std::shared_ptr<AudioManager> audioManager) {
-    impl = std::make_unique<Impl>(target, std::move(audioManager));
+Call::Call(Settings const& self, CallHistory* history, Instance const& target,
+           std::shared_ptr<AudioManager> audioManager) {
+    impl = std::make_unique<Impl>(self, history, target, std::move(audioManager));
 
     impl->receiverPort = globalPortManager.getPort();
     if (impl->receiverPort.isValid()) {
@@ -150,18 +159,21 @@ Call::Call(Settings const& self, Instance const& target, std::shared_ptr<AudioMa
         impl->videoReceiver = std::make_shared<VideoReceiver>(impl->videoReceiverPort.get());
         impl->videoReceiver->start();
     }
-
-    impl->videoSenderDevice = self.videoDevice();
 }
 
-Call::Call(Settings const& self, UUID const& id, Instance const& target, std::shared_ptr<AudioManager> audioManager)
-    : Call(self, target, std::move(audioManager)) {
+Call::Call(Settings const& self, CallHistory* history, UUID const& id, Instance const& target,
+           std::shared_ptr<AudioManager> audioManager)
+    : Call(self, history, target, std::move(audioManager)) {
     impl->id = id;
 }
 
 Call::~Call() {
     if (impl) {
         stop();
+
+        if (impl->history) {
+            impl->history->addEntry(impl->accepted, impl->canceled, impl->imageData);
+        }
     }
 }
 
@@ -195,6 +207,7 @@ void Call::connect(int senderPort) {
 }
 
 void Call::start() {
+    impl->accepted = true;
     impl->audioManager->startCall();
 
     if (impl->sender) {
@@ -273,6 +286,14 @@ bool Call::canSendVideo() const {
 
 bool Call::isSendingVideo() const {
     return impl->videoSender && impl->videoSender->isRunning();
+}
+
+void Call::setImageData(std::string data) {
+    impl->imageData = std::move(data);
+}
+
+void Call::setCanceled() {
+    impl->canceled = true;
 }
 
 bool Call::isInvalid() const {

@@ -45,6 +45,10 @@ inline void styleButton(Gtk::Widget& widget, std::string const& color = colorDar
             "color: " + fontColor + ";"
             "padding-top: " + std::to_string(padding) + "px;"
             "padding-bottom: " + std::to_string(padding) + "px;"
+        "}"
+        "*:disabled {"
+            "background: " + colorVeryLightGrey + ";"
+            "color: " + colorDarkGrey + ";"
         "}";
     // clang-format on
     applyCss(widget, css);
