@@ -17,7 +17,7 @@
 int const discoveryPort = 40001;
 
 std::chrono::seconds const discoverySendInterval(1);
-std::chrono::seconds const discoveryCleanupInterval(10);
+std::chrono::seconds const discoveryCleanupInterval(1);
 std::chrono::seconds const discoveryTimeout(60);
 
 // Discovery broadcasts are a UDP packet consisting of this ASCII string followed by data in the form of ASCII encoded
@@ -143,6 +143,7 @@ void listenForDiscoveries(DiscoveryCallback const& callback, std::atomic<bool> c
 
     UdpSocket socket;
     socket.bind(discoveryPort, true);
+    socket.setReceiveTimeout(std::chrono::milliseconds(100));
 
     while (!stop->load()) {
         auto data = socket.receive();

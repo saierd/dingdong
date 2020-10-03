@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <vector>
 
 #include "ip_address.h"
@@ -22,6 +23,7 @@ public:
 
     void bind(int port = 0, bool allowAddressReuse = false);
     void allowBroadcasts();
+    void setReceiveTimeout(std::chrono::milliseconds timeout);
 
     void send(uint8_t const* data, int size, IpAddress const& address, int port) const;
     void send(Data const& data, IpAddress const& address, int port) const;
@@ -35,4 +37,5 @@ public:
 
 private:
     int handle = 0;
+    std::chrono::milliseconds receiveTimeout{ 0 };
 };

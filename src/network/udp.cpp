@@ -54,6 +54,10 @@ void UdpSocket::allowBroadcasts() {
     }
 }
 
+void UdpSocket::setReceiveTimeout(std::chrono::milliseconds timeout) {
+    receiveTimeout = timeout;
+}
+
 void UdpSocket::send(uint8_t const* data, int size, IpAddress const& address, int port) const {
     struct sockaddr_in addr;
 
@@ -70,6 +74,22 @@ void UdpSocket::send(Data const& data, IpAddress const& address, int port) const
 }
 
 UdpSocket::Data UdpSocket::receive(size_t maxPacketSize) const {
+    if (receiveTimeout.count() > 0) {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(handle, &fds);
+
+        struct timeval timeout;
+        timeout.tv_sec = receiveTimeout.count() / 1000;
+        timeout.tv_usec = (receiveTimeout.count() % 1000) * 1000;
+
+        select(handle + 1, &fds, NULL, NULL, &timeout);
+        if (!FD_ISSET(handle, &fds)) {
+            // Socket has no data yet.
+            return {};
+        }
+    }
+
     Data data(maxPacketSize);
 
     struct sockaddr_in remoteAddr;
