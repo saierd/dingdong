@@ -63,6 +63,7 @@ set(HEADERS
     src/ui/constants.h
     src/ui/gtk_helpers.h
     src/ui/main_window.h
+    src/ui/scalingImage.h
     src/ui/screen.h
     src/ui/screens/action_screen.h
     src/ui/screens/call_history_screen.h

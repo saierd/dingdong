@@ -7,12 +7,12 @@
 #include <gdkmm/pixbufloader.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
-#include <gtkmm/image.h>
 #include <gtkmm/label.h>
 
 #include "call_history.h"
 #include "ui/gtk_helpers.h"
 #include "ui/main_window.h"
+#include "ui/scalingImage.h"
 
 class CallHistoryScreen::Impl {
 public:
@@ -47,7 +47,7 @@ public:
 
         box.set_orientation(Gtk::ORIENTATION_VERTICAL);
         box.set_spacing(defaultSpacing);
-        box.pack_start(label);
+        box.pack_start(label, false, false);
         box.pack_start(hbox);
         box.show_all();
     }
@@ -86,7 +86,7 @@ public:
     Gtk::Box hbox;
 
     Gtk::Label label;
-    Gtk::Image image;
+    ScalingImage image;
 
     Gtk::Button backButton;
     Gtk::Image backButtonIcon;
