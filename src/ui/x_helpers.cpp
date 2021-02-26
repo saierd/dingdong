@@ -4,7 +4,7 @@
 #include <X11/extensions/Xfixes.h>
 
 void hideCursorForApplication() {
-    Display* conn = XOpenDisplay(NULL);
+    Display* conn = XOpenDisplay(nullptr);
     XFixesHideCursor(conn, DefaultRootWindow(conn));
     XFlush(conn);
 }

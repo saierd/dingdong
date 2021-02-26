@@ -67,7 +67,7 @@ inline void loadImageWithSize(Gtk::Image& image, std::string const& resourcePath
     auto pixbuf = Gdk::Pixbuf::create_from_resource(resourcePath, width, height ? height : width);
 
     if (forceWhite) {
-        auto data = pixbuf->get_pixels();
+        guint8* data = pixbuf->get_pixels();
         for (int i = 0; i < pixbuf->get_width() * pixbuf->get_height(); i++) {
             data[0] = 255;
             data[1] = 255;

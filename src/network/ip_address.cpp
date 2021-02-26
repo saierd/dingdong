@@ -16,7 +16,7 @@ IpAddress::IpAddress(struct sockaddr const* addr) {
         return;
     }
 
-    auto addr_in = reinterpret_cast<sockaddr_in const*>(addr);
+    auto const* addr_in = reinterpret_cast<sockaddr_in const*>(addr);
     address = ntohl(addr_in->sin_addr.s_addr);
 }
 

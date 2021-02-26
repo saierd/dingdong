@@ -2,9 +2,19 @@ Checks: >
     bugprone-*,
     modernize-*,
     -modernize-use-nodiscard,
+    -modernize-use-trailing-return-type,
     performance-*,
     readability-*,
-    -readability-magic-numbers
+    -readability-implicit-bool-conversion,
+    -readability-magic-numbers,
+    -readability-redundant-access-specifiers,
+    # The following checks are disabled, because they have false positives or
+    # cause warnings in the interface to C APIs.
+    -clang-analyzer-optin.cplusplus.VirtualCall,
+    -clang-diagnostic-pedantic,
+    -readability-convert-member-functions-to-static,
+    -readability-isolate-declaration,
+    -readability-make-member-function-const
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines
     value: 1

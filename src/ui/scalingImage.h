@@ -5,7 +5,7 @@
 
 class ScalingImageContent : public Gtk::Image {
 public:
-    void set(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
+    void set(Glib::RefPtr<Gdk::Pixbuf> const& pixbuf) {
         originalImage = pixbuf;
         updateScaledImage();
     }
@@ -53,10 +53,10 @@ public:
         add(image);
     }
 
-    void set(Glib::RefPtr<Gdk::Pixbuf> pixbuf) {
+    void set(Glib::RefPtr<Gdk::Pixbuf> const& pixbuf) {
         // Adjust aspect ratio to the ratio of the image.
         Gtk::AspectFrame::set(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER,
-                              static_cast<float>(pixbuf->get_width()) / pixbuf->get_height());
+                              static_cast<float>(pixbuf->get_width()) / static_cast<float>(pixbuf->get_height()));
 
         image.set(pixbuf);
     }

@@ -83,7 +83,7 @@ UdpSocket::Data UdpSocket::receive(size_t maxPacketSize) const {
         timeout.tv_sec = receiveTimeout.count() / 1000;
         timeout.tv_usec = (receiveTimeout.count() % 1000) * 1000;
 
-        select(handle + 1, &fds, NULL, NULL, &timeout);
+        select(handle + 1, &fds, nullptr, nullptr, &timeout);
         if (!FD_ISSET(handle, &fds)) {
             // Socket has no data yet.
             return {};

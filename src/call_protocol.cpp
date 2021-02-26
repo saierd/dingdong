@@ -32,7 +32,7 @@ char const* jsonContentType = "application/json";
 char const* jpegContentType = "image/jpeg";
 
 httplib::Client clientForTarget(Instance const& target) {
-    return httplib::Client(target.ipAddress().toString().c_str(), protocolPort);
+    return httplib::Client(target.ipAddress().toString(), protocolPort);
 }
 
 class CallProtocol::Impl {
@@ -102,7 +102,7 @@ public:
                 std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->info("Received image for {}", id.toString());
 
-                auto call = incomingCallById(id);
+                auto* call = incomingCallById(id);
                 if (call == nullptr) {
                     logger->error("Could not find call {}", id.toString());
                     response.status = 500;
@@ -126,7 +126,7 @@ public:
                 std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->info("Received accept request for {}", id.toString());
 
-                auto call = outgoingCallById(id);
+                auto* call = outgoingCallById(id);
                 if (call == nullptr) {
                     logger->error("Could not find call {}", id.toString());
                     response.status = 500;
@@ -196,7 +196,7 @@ public:
                 std::lock_guard<std::recursive_mutex> lock(mutex);
                 logger->trace("Remote set video enabled for call {} to {}", id.toString(), enable);
 
-                auto call = outgoingCallById(id);
+                auto* call = outgoingCallById(id);
                 if (call == nullptr) {
                     call = incomingCallById(id);
                 }
@@ -340,7 +340,7 @@ public:
 
         bool found = false;
 
-        auto call = incomingCallById(id);
+        auto* call = incomingCallById(id);
         if (call != nullptr) {
             call->invalidate();
             if (target != nullptr) *target = call->target();
@@ -616,7 +616,7 @@ void CallProtocol::requestCall(Instance const& target) {
 
     {
         std::lock_guard<std::recursive_mutex> lock(impl->mutex);
-        auto call = impl->outgoingCallById(newCallId);
+        auto* call = impl->outgoingCallById(newCallId);
         if (call != nullptr) {
             call->connect(data["port"]);
             call->connectVideo(data["videoPort"]);
@@ -637,7 +637,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, s
     std::unique_ptr<Instance> callTarget;
     {
         std::lock_guard<std::recursive_mutex> lock(impl->mutex);
-        auto call = impl->incomingCallById(id);
+        auto* call = impl->incomingCallById(id);
         if (call != nullptr) {
             callTarget = std::make_unique<Instance>(call->target());
         }
@@ -669,7 +669,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, s
 
     {
         std::lock_guard<std::recursive_mutex> lock(impl->mutex);
-        auto call = impl->incomingCallById(id);
+        auto* call = impl->incomingCallById(id);
         if (success && call != nullptr) {
             call->start();
         } else if (call != nullptr) {
@@ -683,7 +683,7 @@ void CallProtocol::acceptCall(UUID const& id, std::optional<int> receiverPort, s
 void CallProtocol::cancelCall(UUID const& id) {
     impl->logger->debug("Cancel call {}", id.toString());
 
-    auto call = impl->incomingCallById(id);
+    auto* call = impl->incomingCallById(id);
     if (call) {
         call->setCanceled();
     }
@@ -694,7 +694,7 @@ void CallProtocol::cancelCall(UUID const& id) {
 void CallProtocol::muteCall(UUID const& id, bool mute) {
     std::unique_lock<std::recursive_mutex> lock(impl->mutex);
 
-    auto call = impl->incomingCallById(id);
+    auto* call = impl->incomingCallById(id);
     if (call == nullptr) {
         call = impl->outgoingCallById(id);
     }
@@ -715,7 +715,7 @@ void CallProtocol::muteCall(UUID const& id, bool mute) {
 void CallProtocol::enableVideoForCall(UUID const& id, bool sendVideo) {
     std::unique_lock<std::recursive_mutex> lock(impl->mutex);
 
-    auto call = impl->incomingCallById(id);
+    auto* call = impl->incomingCallById(id);
     if (call == nullptr) {
         call = impl->outgoingCallById(id);
     }
@@ -750,7 +750,7 @@ void CallProtocol::enableVideoForCall(UUID const& id, bool sendVideo) {
 void CallProtocol::requestRemoteAction(UUID const& callId, std::string const& actionId) {
     impl->logger->debug("Request remote action {} for call {}", actionId, callId.toString());
 
-    auto call = impl->incomingCallById(callId);
+    auto* call = impl->incomingCallById(callId);
     if (call == nullptr) {
         call = impl->outgoingCallById(callId);
     }
