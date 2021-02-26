@@ -1,0 +1,100 @@
+name: CI
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+  BUILD_DIRECTORY_HOST: build-host
+  BUILD_DIRECTORY_RASPBERRY: build-raspberry
+
+jobs:
+  build-host:
+    name: Build Host
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Configure problem matchers for C++ build errors and warnings.
+      - name: Setup Problem Matchers
+        uses: Trass3r/setup-cpp@master
+
+      - name: Install Build Tools
+        run: sudo apt-get install clang-tidy ninja-build
+
+      - name: Install Dependencies
+        run: >
+          sudo apt-get install \
+            libglib2.0-dev \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libgtkmm-3.0-dev \
+            libmount-dev \
+            libpulse-dev \
+            libssl-dev \
+            libx11-dev \
+            libxfixes-dev \
+            uuid-dev \
+            x11proto-dev
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Create Build Directory
+        run: cmake -E make_directory ${{runner.workspace}}/${{env.BUILD_DIRECTORY_HOST}}
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/${{env.BUILD_DIRECTORY_HOST}}
+        run: cmake $GITHUB_WORKSPACE -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        shell: bash
+        working-directory: ${{runner.workspace}}/${{env.BUILD_DIRECTORY_HOST}}
+        run: cmake --build . --config ${{env.BUILD_TYPE}}
+
+  build-raspberry:
+    name: Build Raspberry Pi
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Configure problem matchers for C++ build errors and warnings.
+      - name: Setup Problem Matchers
+        uses: Trass3r/setup-cpp@master
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Cache Docker Image
+        uses: satackey/action-docker-layer-caching@v0.0.11
+
+      - name: Build Docker Image
+        shell: bash
+        run: ./build/docker/build.sh
+
+      - name: Build
+        shell: bash
+        run: ./build/build.sh ${{env.BUILD_DIRECTORY_RASPBERRY}}
+
+      - name: Archive Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: ${{env.BUILD_DIRECTORY_RASPBERRY}}/*.deb
+          if-no-files-found: error
+
+  clang-format:
+    name: Check Code Formatting
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Check Code Formatting
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: src
+          clangFormatVersion: 11
