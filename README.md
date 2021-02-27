@@ -1,5 +1,7 @@
 A doorbell and intercom solution running on Raspberry Pi.
 
+*Note: This project is not ready for production. It does run the doorbell in my house, but you should not expect to install this and get a ready-to-use solution without doing significant modifications.*
+
 ## Features
 
 * Ringing the door from another instance or with a switch.
