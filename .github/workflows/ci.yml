@@ -38,6 +38,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
+          lfs: true
           submodules: true
 
       - name: Create Build Directory
@@ -65,7 +66,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          submodules: recursive
+          lfs: true
+          submodules: true
 
       - name: Cache Docker Image
         uses: satackey/action-docker-layer-caching@v0.0.11
