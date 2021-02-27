@@ -35,10 +35,10 @@ install(
     DESTINATION "${INSTALL_DIRECTORY}"
     USE_SOURCE_PERMISSIONS)
 
-# Install data files.
+# Install ringtone files.
 install(
-    DIRECTORY "data"
-    DESTINATION "${INSTALL_DIRECTORY}")
+    DIRECTORY "resources/ringtones/"
+    DESTINATION "${INSTALL_DIRECTORY}/data")
 
 # Create a settings directory that is writable for the dingdong service.
 install(
