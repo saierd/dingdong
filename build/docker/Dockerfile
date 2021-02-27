@@ -6,6 +6,7 @@ RUN apt-get update \
     dpkg-dev \
     file \
     g++-arm-linux-gnueabihf \
+    git \
     ninja-build \
  && rm -rf /var/lib/apt/lists/*
 

@@ -16,6 +16,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-qual -Wconversion-null -Woverleng
 
 include(cmake/clang_tidy.cmake)
 include(cmake/ccache.cmake)
+include(cmake/version.cmake)
+
 include(cmake/gdk-x11.cmake)
 include(cmake/gresource.cmake)
 include(cmake/gstreamer.cmake)

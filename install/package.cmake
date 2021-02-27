@@ -4,6 +4,7 @@ set(INSTALL_DIRECTORY "/opt/dingdong")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_CONTACT "Daniel Saier")
 set(CPACK_PACKAGE_VENDOR "SSSaier")
+set(CPACK_PACKAGE_VERSION "${project_version}")
 
 # Set the package architecture.
 if (RASPBERRY_PI)
