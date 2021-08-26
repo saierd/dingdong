@@ -10,4 +10,9 @@ if [ $? == 0 ]; then
     device_name="alsa_output.platform-soc_audio.analog-mono"
 fi
 
+pactl list | grep "alsa_output.platform-bcm2835_audio.analog-stereo" &> /dev/null
+if [ $? == 0 ]; then
+    device_name="alsa_output.platform-bcm2835_audio.analog-stereo"
+fi
+
 pactl set-sink-volume "${device_name}" 100%
