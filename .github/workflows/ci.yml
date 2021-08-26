@@ -18,10 +18,13 @@ jobs:
         uses: Trass3r/setup-cpp@master
 
       - name: Install Build Tools
-        run: sudo apt-get install clang-tidy ninja-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install clang-tidy ninja-build
 
       - name: Install Dependencies
-        run: >
+        run: |
+          sudo apt-get update
           sudo apt-get install \
             libglib2.0-dev \
             libgstreamer1.0-dev \
